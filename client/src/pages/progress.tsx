@@ -52,7 +52,7 @@ export default function Progress() {
       
       return {
         date: dateStr,
-        activities: dayActivities.reduce((sum, a) => sum + a.duration, 0),
+        activities: dayActivities.reduce((sum, a) => sum + (a.duration || 0), 0),
         nutrition: dayNutrition.length,
         energy: daySocial.length > 0 ? 
           daySocial.reduce((sum, s) => sum + (s.actualEnergy || s.expectedEnergy), 0) / daySocial.length : 

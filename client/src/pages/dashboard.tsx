@@ -75,7 +75,9 @@ export default function Dashboard() {
               <p className="text-xs text-gray-600">Activity</p>
               <p className="text-sm font-medium text-gray-800">
                 {todayActivities.length > 0 
-                  ? `${todayActivities[0].duration} min ${todayActivities[0].type}`
+                  ? todayActivities[0].steps 
+                    ? `${todayActivities[0].steps.toLocaleString()} steps`
+                    : `${todayActivities[0].duration || 0} min ${todayActivities[0].type}`
                   : "No activity yet"
                 }
               </p>

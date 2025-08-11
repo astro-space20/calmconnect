@@ -26,8 +26,9 @@ export const otpCodes = pgTable("otp_codes", {
 export const activities = pgTable("activities", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
-  type: text("type").notNull(), // walking, yoga, swimming, tai chi, meditation, other
-  duration: integer("duration").notNull(), // minutes
+  type: text("type").notNull(), // walking, yoga, swimming, tai chi, meditation, steps, other
+  duration: integer("duration"), // minutes (null for steps tracking)
+  steps: integer("steps"), // daily steps count (null for time-based activities)
   feeling: text("feeling").notNull(), // emoji or scale
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -110,6 +111,11 @@ export const otpVerifySchema = z.object({
 export const insertActivitySchema = createInsertSchema(activities).omit({
   id: true,
   createdAt: true,
+}).refine((data) => {
+  // Either duration OR steps should be provided, not both
+  return (data.duration && !data.steps) || (!data.duration && data.steps);
+}, {
+  message: "Provide either duration for time-based activities or steps for step tracking"
 });
 
 export const insertNutritionLogSchema = createInsertSchema(nutritionLogs).omit({

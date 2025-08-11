@@ -110,7 +110,12 @@ export default function ActivityTracker() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                    <span>{activity.duration} minutes</span>
+                    <span>
+                      {activity.steps 
+                        ? `${activity.steps.toLocaleString()} steps`
+                        : `${activity.duration || 0} minutes`
+                      }
+                    </span>
                     <span>{new Date(activity.createdAt).toLocaleDateString()}</span>
                   </div>
                   {activity.notes && (
