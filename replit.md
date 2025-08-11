@@ -4,6 +4,12 @@
 
 CalmTrack is a comprehensive mental wellness application designed specifically to support users with anxiety through evidence-based tracking and management tools. The application provides a holistic approach to mental health by combining activity tracking, nutrition logging, social exposure management, and cognitive behavioral therapy (CBT) techniques. Built as a mobile-first progressive web application, CalmTrack emphasizes gentle progression, self-compassion, and positive reinforcement to help users build resilience and manage anxiety symptoms.
 
+## Recent Changes (January 2025)
+- **Authentication System**: Complete mobile phone OTP verification with encrypted data storage
+- **Guest Login**: One-click guest access without phone verification for immediate app testing
+- **Protected Routes**: All tracking features secured behind authentication with JWT sessions
+- **User Management**: Logout functionality with user menu, automatic session handling
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

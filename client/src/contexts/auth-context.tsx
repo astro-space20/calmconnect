@@ -28,6 +28,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData);
     localStorage.setItem('auth_token', authToken);
     localStorage.setItem('user_data', JSON.stringify(userData));
+    // Redirect to dashboard after successful login
+    window.location.href = '/';
   };
 
   const logout = () => {
