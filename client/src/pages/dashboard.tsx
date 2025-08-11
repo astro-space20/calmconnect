@@ -129,6 +129,16 @@ export default function Dashboard() {
               </a>
             </Link>
             
+            <Link href="/cbt-exercises">
+              <a className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
+                <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-3">
+                  <Brain className="text-indigo-600 w-6 h-6" />
+                </div>
+                <h3 className="font-medium text-gray-800 mb-1">CBT Exercises</h3>
+                <p className="text-xs text-gray-600">Guided audio therapy</p>
+              </a>
+            </Link>
+            
             <Link href="/journal">
               <a className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
                 <div className="w-12 h-12 bg-accent bg-opacity-10 rounded-xl flex items-center justify-center mb-3">
@@ -136,16 +146,6 @@ export default function Dashboard() {
                 </div>
                 <h3 className="font-medium text-gray-800 mb-1">Thought Journal</h3>
                 <p className="text-xs text-gray-600">CBT reframing</p>
-              </a>
-            </Link>
-            
-            <Link href="/nutrition">
-              <a className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
-                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-3">
-                  <Apple className="text-orange-500 w-6 h-6" />
-                </div>
-                <h3 className="font-medium text-gray-800 mb-1">Nutrition Log</h3>
-                <p className="text-xs text-gray-600">Mood-supportive meals</p>
               </a>
             </Link>
           </div>

@@ -10,6 +10,7 @@ import ActivityTracker from "@/pages/activity-tracker";
 import NutritionLog from "@/pages/nutrition-log";
 import SocialTracker from "@/pages/social-tracker";
 import ThoughtJournal from "@/pages/thought-journal";
+import CBTExercises from "@/pages/cbt-exercises";
 import Progress from "@/pages/progress";
 import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
@@ -46,6 +47,11 @@ function Router() {
       <Route path="/progress">
         <ProtectedRoute>
           <Progress />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/cbt-exercises">
+        <ProtectedRoute>
+          <CBTExercises />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
