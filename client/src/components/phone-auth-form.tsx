@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 
 interface PhoneAuthFormProps {
   onOtpSent: (phoneNumber: string, otpCode?: string) => void;
@@ -14,7 +15,9 @@ interface PhoneAuthFormProps {
 
 export default function PhoneAuthForm({ onOtpSent }: PhoneAuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const { register, handleSubmit, formState: { errors } } = useForm<PhoneAuth>({
     resolver: zodResolver(phoneAuthSchema),
@@ -57,6 +60,42 @@ export default function PhoneAuthForm({ onOtpSent }: PhoneAuthFormProps) {
     }
   };
 
+  const handleGuestLogin = async () => {
+    setIsGuestLoading(true);
+    try {
+      const response = await fetch('/api/auth/guest-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        await login(result.token, result.user);
+        toast({
+          title: "Guest Session Created",
+          description: "You can now explore the app as a guest user.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || "Failed to create guest session",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Network error. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGuestLoading(false);
+    }
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
@@ -85,16 +124,40 @@ export default function PhoneAuthForm({ onOtpSent }: PhoneAuthFormProps) {
           <Button 
             type="submit" 
             className="w-full gradient-bg hover:opacity-90"
-            disabled={isLoading}
+            disabled={isLoading || isGuestLoading}
           >
             {isLoading ? "Sending..." : "Send Verification Code"}
           </Button>
+          
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-muted-foreground">
+                Or
+              </span>
+            </div>
+          </div>
+          
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleGuestLogin}
+            disabled={isLoading || isGuestLoading}
+          >
+            {isGuestLoading ? "Creating Guest Session..." : "Continue as Guest"}
+          </Button>
+          
+          <p className="text-xs text-gray-500 mt-3 text-center">
+            Guest mode lets you try the app without phone verification. Your data will be temporary.
+          </p>
         </form>
 
         <div className="mt-6 pt-4 border-t border-gray-100">
           <p className="text-xs text-center text-gray-500">
             By continuing, you agree to our terms of service and privacy policy.
-            We'll send you a one-time verification code via SMS.
           </p>
         </div>
       </CardContent>

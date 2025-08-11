@@ -23,6 +23,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // Authentication Routes
+  app.post("/api/auth/guest-login", async (req, res) => {
+    try {
+      // Create guest user with unique identifier
+      const guestId = "guest-" + Date.now();
+      const phoneHash = hashPhoneNumber(guestId);
+      const encryptedPhone = encryptPhoneNumber(guestId);
+      
+      const guestUser = await storage.createUser({
+        phoneNumber: encryptedPhone,
+        phoneNumberHash: phoneHash,
+        name: "Guest User",
+        isVerified: true, // Guest users don't need verification
+      });
+
+      // Generate JWT token
+      const token = generateJWT(guestUser.id, guestId);
+
+      res.json({
+        message: "Guest session created",
+        token,
+        user: {
+          id: guestUser.id,
+          phoneNumber: "Guest User"
+        }
+      });
+    } catch (error) {
+      console.error("Guest login error:", error);
+      res.status(500).json({ message: "Failed to create guest session" });
+    }
+  });
+
   app.post("/api/auth/send-otp", async (req, res) => {
     try {
       const { phoneNumber } = phoneAuthSchema.parse(req.body);
