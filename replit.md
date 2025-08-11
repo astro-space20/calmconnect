@@ -7,6 +7,7 @@ CalmTrack is a comprehensive mental wellness application designed specifically t
 ## Recent Changes (January 2025)
 - **Authentication System**: Complete mobile phone OTP verification with encrypted data storage
 - **Guest Login**: One-click guest access without phone verification for immediate app testing
+- **Real SMS Integration**: Twilio SMS service for actual text message delivery of OTP codes
 - **Protected Routes**: All tracking features secured behind authentication with JWT sessions
 - **User Management**: Logout functionality with user menu, automatic session handling
 

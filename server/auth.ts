@@ -39,21 +39,40 @@ export function verifyJWT(token: string): { userId: string; phoneNumber: string 
   }
 }
 
-// Mock SMS service - In production, replace with actual SMS provider
+// SMS service with Twilio integration
 export async function sendOTPSMS(phoneNumber: string, otpCode: string): Promise<boolean> {
-  console.log(`[SMS Service] Sending OTP ${otpCode} to ${phoneNumber}`);
-  
-  // Simulate SMS sending delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // In production, integrate with SMS providers like:
-  // - Twilio
-  // - AWS SNS
-  // - Firebase Auth
-  // - MessageBird
-  // etc.
-  
-  return true; // Always return success for demo
+  try {
+    // Check if Twilio credentials are available
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
+
+    if (accountSid && authToken && twilioPhone) {
+      // Use Twilio for real SMS delivery
+      const twilio = require('twilio');
+      const client = twilio(accountSid, authToken);
+
+      const message = await client.messages.create({
+        body: `Your CalmTrack verification code is: ${otpCode}. This code expires in 5 minutes.`,
+        from: twilioPhone,
+        to: phoneNumber,
+      });
+
+      console.log(`[SMS Service] OTP ${otpCode} sent via Twilio to ${phoneNumber} (SID: ${message.sid})`);
+      return true;
+    } else {
+      // Development mode - log the OTP when Twilio is not configured
+      console.log(`[SMS Service] Sending OTP ${otpCode} to ${phoneNumber}`);
+      console.log('Note: Configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER for real SMS delivery');
+      
+      // Simulate SMS sending delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return true;
+    }
+  } catch (error) {
+    console.error('SMS sending failed:', error);
+    return false;
+  }
 }
 
 export function isValidPhoneNumber(phoneNumber: string): boolean {
