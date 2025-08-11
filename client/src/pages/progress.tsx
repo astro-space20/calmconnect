@@ -13,19 +13,19 @@ const USER_ID = "demo-user";
 
 export default function Progress() {
   const { data: activities } = useQuery<Activity[]>({
-    queryKey: ["/api/activities", { userId: USER_ID }],
+    queryKey: ["/api/activities"],
   });
 
   const { data: nutritionLogs } = useQuery<NutritionLog[]>({
-    queryKey: ["/api/nutrition-logs", { userId: USER_ID }],
+    queryKey: ["/api/nutrition-logs"],
   });
 
   const { data: socialExposures } = useQuery<SocialExposure[]>({
-    queryKey: ["/api/social-exposures", { userId: USER_ID }],
+    queryKey: ["/api/social-exposures"],
   });
 
   const { data: thoughtJournals } = useQuery<ThoughtJournal[]>({
-    queryKey: ["/api/thought-journals", { userId: USER_ID }],
+    queryKey: ["/api/thought-journals"],
   });
 
   // Generate last 7 days of data

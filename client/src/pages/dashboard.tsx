@@ -14,15 +14,15 @@ export default function Dashboard() {
   const [selectedMood, setSelectedMood] = useState<string>();
 
   const { data: activities } = useQuery<ActivityType[]>({
-    queryKey: ["/api/activities", { userId: USER_ID }],
+    queryKey: ["/api/activities"],
   });
 
   const { data: nutritionLogs } = useQuery<NutritionLog[]>({
-    queryKey: ["/api/nutrition-logs", { userId: USER_ID }],
+    queryKey: ["/api/nutrition-logs"],
   });
 
   const { data: socialExposures } = useQuery<SocialExposure[]>({
-    queryKey: ["/api/social-exposures", { userId: USER_ID }],
+    queryKey: ["/api/social-exposures"],
   });
 
   const todayActivities = activities?.filter(

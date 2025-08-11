@@ -10,15 +10,35 @@ import {
   type ThoughtJournal,
   type InsertThoughtJournal,
   type EmpathyCheckin,
-  type InsertEmpathyCheckin
+  type InsertEmpathyCheckin,
+  type OtpCode,
+  type InsertOtp,
+  users,
+  activities,
+  nutritionLogs,
+  socialExposures,
+  thoughtJournals,
+  empathyCheckins,
+  otpCodes
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, lt, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByPhoneHash(phoneHash: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserVerification(id: string, isVerified: boolean): Promise<User | undefined>;
+  updateUserLastLogin(id: string): Promise<void>;
+  
+  // OTP Codes
+  createOtpCode(otp: InsertOtp): Promise<OtpCode>;
+  getValidOtpCode(phoneHash: string, otpCode: string): Promise<OtpCode | undefined>;
+  markOtpAsUsed(id: string): Promise<void>;
+  incrementOtpAttempts(id: string): Promise<void>;
+  cleanupExpiredOtps(): Promise<void>;
   
   // Activities
   getActivities(userId: string, limit?: number): Promise<Activity[]>;
@@ -42,144 +62,212 @@ export interface IStorage {
   createEmpathyCheckin(checkin: InsertEmpathyCheckin): Promise<EmpathyCheckin>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private activities: Map<string, Activity>;
-  private nutritionLogs: Map<string, NutritionLog>;
-  private socialExposures: Map<string, SocialExposure>;
-  private thoughtJournals: Map<string, ThoughtJournal>;
-  private empathyCheckins: Map<string, EmpathyCheckin>;
-
-  constructor() {
-    this.users = new Map();
-    this.activities = new Map();
-    this.nutritionLogs = new Map();
-    this.socialExposures = new Map();
-    this.thoughtJournals = new Map();
-    this.empathyCheckins = new Map();
-  }
-
+export class DatabaseStorage implements IStorage {
   // Users
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getUserByPhoneHash(phoneHash: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.phoneNumberHash, phoneHash));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...insertUser,
+        createdAt: new Date(),
+      })
+      .returning();
     return user;
+  }
+
+  async updateUserVerification(id: string, isVerified: boolean): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ isVerified, lastLoginAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async updateUserLastLogin(id: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(users.id, id));
+  }
+
+  // OTP Codes
+  async createOtpCode(insertOtp: InsertOtp): Promise<OtpCode> {
+    const [otp] = await db
+      .insert(otpCodes)
+      .values({
+        ...insertOtp,
+        createdAt: new Date(),
+      })
+      .returning();
+    return otp;
+  }
+
+  async getValidOtpCode(phoneHash: string, otpCode: string): Promise<OtpCode | undefined> {
+    const now = new Date();
+    const [otp] = await db
+      .select()
+      .from(otpCodes)
+      .where(
+        and(
+          eq(otpCodes.phoneNumberHash, phoneHash),
+          eq(otpCodes.otpCode, otpCode),
+          eq(otpCodes.isUsed, false),
+          lt(otpCodes.attempts, 3)
+        )
+      );
+    
+    // Check expiration manually since Drizzle date comparison can be tricky
+    if (otp && new Date(otp.expiresAt) > now) {
+      return otp;
+    }
+    
+    return undefined;
+  }
+
+  async markOtpAsUsed(id: string): Promise<void> {
+    await db
+      .update(otpCodes)
+      .set({ isUsed: true })
+      .where(eq(otpCodes.id, id));
+  }
+
+  async incrementOtpAttempts(id: string): Promise<void> {
+    await db
+      .update(otpCodes)
+      .set({ attempts: sql`${otpCodes.attempts} + 1` })
+      .where(eq(otpCodes.id, id));
+  }
+
+  async cleanupExpiredOtps(): Promise<void> {
+    await db
+      .delete(otpCodes)
+      .where(lt(otpCodes.expiresAt, new Date()));
   }
 
   // Activities
   async getActivities(userId: string, limit = 50): Promise<Activity[]> {
-    return Array.from(this.activities.values())
-      .filter(activity => activity.userId === userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit);
+    return await db
+      .select()
+      .from(activities)
+      .where(eq(activities.userId, userId))
+      .orderBy(activities.createdAt)
+      .limit(limit);
   }
 
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
-    const id = randomUUID();
-    const activity: Activity = { 
-      ...insertActivity, 
-      id, 
-      createdAt: new Date() 
-    };
-    this.activities.set(id, activity);
+    const [activity] = await db
+      .insert(activities)
+      .values({
+        ...insertActivity,
+        createdAt: new Date(),
+      })
+      .returning();
     return activity;
   }
 
   // Nutrition Logs
   async getNutritionLogs(userId: string, limit = 50): Promise<NutritionLog[]> {
-    return Array.from(this.nutritionLogs.values())
-      .filter(log => log.userId === userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit);
+    return await db
+      .select()
+      .from(nutritionLogs)
+      .where(eq(nutritionLogs.userId, userId))
+      .orderBy(nutritionLogs.createdAt)
+      .limit(limit);
   }
 
   async createNutritionLog(insertLog: InsertNutritionLog): Promise<NutritionLog> {
-    const id = randomUUID();
-    const log: NutritionLog = { 
-      ...insertLog, 
-      id, 
-      createdAt: new Date() 
-    };
-    this.nutritionLogs.set(id, log);
+    const [log] = await db
+      .insert(nutritionLogs)
+      .values({
+        ...insertLog,
+        createdAt: new Date(),
+      })
+      .returning();
     return log;
   }
 
   // Social Exposures
   async getSocialExposures(userId: string, limit = 50): Promise<SocialExposure[]> {
-    return Array.from(this.socialExposures.values())
-      .filter(exposure => exposure.userId === userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit);
+    return await db
+      .select()
+      .from(socialExposures)
+      .where(eq(socialExposures.userId, userId))
+      .orderBy(socialExposures.createdAt)
+      .limit(limit);
   }
 
   async createSocialExposure(insertExposure: InsertSocialExposure): Promise<SocialExposure> {
-    const id = randomUUID();
-    const exposure: SocialExposure = { 
-      ...insertExposure, 
-      id, 
-      createdAt: new Date() 
-    };
-    this.socialExposures.set(id, exposure);
+    const [exposure] = await db
+      .insert(socialExposures)
+      .values({
+        ...insertExposure,
+        createdAt: new Date(),
+      })
+      .returning();
     return exposure;
   }
 
   async updateSocialExposure(id: string, updates: Partial<SocialExposure>): Promise<SocialExposure | undefined> {
-    const existing = this.socialExposures.get(id);
-    if (!existing) return undefined;
-    
-    const updated = { ...existing, ...updates };
-    this.socialExposures.set(id, updated);
-    return updated;
+    const [exposure] = await db
+      .update(socialExposures)
+      .set(updates)
+      .where(eq(socialExposures.id, id))
+      .returning();
+    return exposure || undefined;
   }
 
   // Thought Journals
   async getThoughtJournals(userId: string, limit = 50): Promise<ThoughtJournal[]> {
-    return Array.from(this.thoughtJournals.values())
-      .filter(journal => journal.userId === userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit);
+    return await db
+      .select()
+      .from(thoughtJournals)
+      .where(eq(thoughtJournals.userId, userId))
+      .orderBy(thoughtJournals.createdAt)
+      .limit(limit);
   }
 
   async createThoughtJournal(insertJournal: InsertThoughtJournal): Promise<ThoughtJournal> {
-    const id = randomUUID();
-    const journal: ThoughtJournal = { 
-      ...insertJournal, 
-      id, 
-      createdAt: new Date() 
-    };
-    this.thoughtJournals.set(id, journal);
+    const [journal] = await db
+      .insert(thoughtJournals)
+      .values({
+        ...insertJournal,
+        createdAt: new Date(),
+      })
+      .returning();
     return journal;
   }
 
   // Empathy Check-ins
   async getEmpathyCheckins(userId: string, limit = 50): Promise<EmpathyCheckin[]> {
-    return Array.from(this.empathyCheckins.values())
-      .filter(checkin => checkin.userId === userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit);
+    return await db
+      .select()
+      .from(empathyCheckins)
+      .where(eq(empathyCheckins.userId, userId))
+      .orderBy(empathyCheckins.createdAt)
+      .limit(limit);
   }
 
   async createEmpathyCheckin(insertCheckin: InsertEmpathyCheckin): Promise<EmpathyCheckin> {
-    const id = randomUUID();
-    const checkin: EmpathyCheckin = { 
-      ...insertCheckin, 
-      id, 
-      createdAt: new Date() 
-    };
-    this.empathyCheckins.set(id, checkin);
+    const [checkin] = await db
+      .insert(empathyCheckins)
+      .values({
+        ...insertCheckin,
+        createdAt: new Date(),
+      })
+      .returning();
     return checkin;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

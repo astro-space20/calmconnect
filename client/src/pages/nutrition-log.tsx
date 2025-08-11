@@ -17,7 +17,7 @@ export default function NutritionLog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: nutritionLogs, isLoading } = useQuery<NutritionLog[]>({
-    queryKey: ["/api/nutrition-logs", { userId: USER_ID }],
+    queryKey: ["/api/nutrition-logs"],
   });
 
   const handleNutritionSaved = () => {

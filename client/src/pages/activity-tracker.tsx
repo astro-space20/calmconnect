@@ -16,7 +16,7 @@ export default function ActivityTracker() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: activities, isLoading } = useQuery<Activity[]>({
-    queryKey: ["/api/activities", { userId: USER_ID }],
+    queryKey: ["/api/activities"],
   });
 
   const handleActivitySaved = () => {

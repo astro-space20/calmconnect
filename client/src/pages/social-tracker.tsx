@@ -29,7 +29,7 @@ export default function SocialTracker() {
   const queryClient = useQueryClient();
 
   const { data: socialExposures, isLoading } = useQuery<SocialExposure[]>({
-    queryKey: ["/api/social-exposures", { userId: USER_ID }],
+    queryKey: ["/api/social-exposures"],
   });
 
   const completeMutation = useMutation({

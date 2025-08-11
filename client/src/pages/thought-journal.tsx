@@ -17,7 +17,7 @@ export default function ThoughtJournal() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: thoughtJournals, isLoading } = useQuery<ThoughtJournal[]>({
-    queryKey: ["/api/thought-journals", { userId: USER_ID }],
+    queryKey: ["/api/thought-journals"],
   });
 
   const handleThoughtSaved = () => {

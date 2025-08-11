@@ -1,12 +1,26 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  phoneNumber: text("phone_number").notNull().unique(),
+  phoneNumberHash: text("phone_number_hash").notNull(),
+  name: text("name"),
+  isVerified: boolean("is_verified").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLoginAt: timestamp("last_login_at"),
+});
+
+export const otpCodes = pgTable("otp_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  phoneNumberHash: text("phone_number_hash").notNull(),
+  otpCode: text("otp_code").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  attempts: integer("attempts").default(0).notNull(),
+  isUsed: boolean("is_used").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const activities = pgTable("activities", {
@@ -72,9 +86,25 @@ export const empathyCheckins = pgTable("empathy_checkins", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  lastLoginAt: true,
+});
+
+export const insertOtpSchema = createInsertSchema(otpCodes).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Authentication schemas
+export const phoneAuthSchema = z.object({
+  phoneNumber: z.string().min(10).max(15).regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"),
+});
+
+export const otpVerifySchema = z.object({
+  phoneNumber: z.string().min(10).max(15).regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"),
+  otpCode: z.string().length(6, "OTP must be 6 digits"),
 });
 
 export const insertActivitySchema = createInsertSchema(activities).omit({
@@ -105,6 +135,10 @@ export const insertEmpathyCheckinSchema = createInsertSchema(empathyCheckins).om
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type OtpCode = typeof otpCodes.$inferSelect;
+export type InsertOtp = z.infer<typeof insertOtpSchema>;
+export type PhoneAuth = z.infer<typeof phoneAuthSchema>;
+export type OtpVerify = z.infer<typeof otpVerifySchema>;
 
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
