@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, TrendingUp, Book, BarChart3, User, Brain } from "lucide-react";
+import { Home, TrendingUp, Book, BarChart3, User, Brain, Phone } from "lucide-react";
 
 export default function BottomNavigation() {
   const [location] = useLocation();
@@ -9,7 +9,7 @@ export default function BottomNavigation() {
     { path: "/activity", icon: TrendingUp, label: "Track" },
     { path: "/cbt-exercises", icon: Brain, label: "CBT" },
     { path: "/journal", icon: Book, label: "Journal" },
-    { path: "/progress", icon: BarChart3, label: "Progress" },
+    { path: "/counselling", icon: Phone, label: "Talk" },
   ];
 
   return (

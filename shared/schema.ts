@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, jsonb, boolean, decimal, time } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -86,6 +86,46 @@ export const empathyCheckins = pgTable("empathy_checkins", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const counsellors = pgTable("counsellors", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  experience: integer("experience").notNull(), // years of experience
+  degree: text("degree").notNull(),
+  specializations: jsonb("specializations").notNull(), // array of specializations
+  availableWeekdays: jsonb("available_weekdays").notNull(), // array of weekday availability
+  availableWeekends: boolean("available_weekends").default(false).notNull(),
+  sessionDuration: integer("session_duration").notNull(), // minutes
+  hourlyRate: decimal("hourly_rate", { precision: 8, scale: 2 }).notNull(),
+  bio: text("bio"),
+  profileImage: text("profile_image"), // URL to image
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const counsellorTimeSlots = pgTable("counsellor_time_slots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  counsellorId: varchar("counsellor_id").notNull(),
+  dayOfWeek: integer("day_of_week").notNull(), // 0-6 (Sunday to Saturday)
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time").notNull(),
+  isAvailable: boolean("is_available").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const counsellingBookings = pgTable("counselling_bookings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  counsellorId: varchar("counsellor_id").notNull(),
+  appointmentDate: timestamp("appointment_date").notNull(),
+  duration: integer("duration").notNull(), // minutes
+  status: text("status").notNull(), // pending, confirmed, completed, cancelled
+  notes: text("notes"), // user's notes about what they want to discuss
+  sessionNotes: text("session_notes"), // counsellor's session notes
+  totalCost: decimal("total_cost", { precision: 8, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -138,6 +178,22 @@ export const insertEmpathyCheckinSchema = createInsertSchema(empathyCheckins).om
   createdAt: true,
 });
 
+export const insertCounsellorSchema = createInsertSchema(counsellors).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCounsellorTimeSlotSchema = createInsertSchema(counsellorTimeSlots).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCounsellingBookingSchema = createInsertSchema(counsellingBookings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -160,3 +216,10 @@ export type InsertThoughtJournal = z.infer<typeof insertThoughtJournalSchema>;
 
 export type EmpathyCheckin = typeof empathyCheckins.$inferSelect;
 export type InsertEmpathyCheckin = z.infer<typeof insertEmpathyCheckinSchema>;
+
+export type Counsellor = typeof counsellors.$inferSelect;
+export type InsertCounsellor = z.infer<typeof insertCounsellorSchema>;
+export type CounsellorTimeSlot = typeof counsellorTimeSlots.$inferSelect;
+export type InsertCounsellorTimeSlot = z.infer<typeof insertCounsellorTimeSlotSchema>;
+export type CounsellingBooking = typeof counsellingBookings.$inferSelect;
+export type InsertCounsellingBooking = z.infer<typeof insertCounsellingBookingSchema>;

@@ -11,6 +11,8 @@ import {
   insertSocialExposureSchema,
   insertThoughtJournalSchema,
   insertEmpathyCheckinSchema,
+  insertCounsellorSchema,
+  insertCounsellingBookingSchema,
   phoneAuthSchema,
   otpVerifySchema
 } from "@shared/schema";
@@ -545,6 +547,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ motivation });
     } catch (error) {
       res.status(500).json({ message: "Failed to get daily motivation" });
+    }
+  });
+
+  // Counsellors
+  app.get("/api/counsellors", async (req, res) => {
+    try {
+      const counsellors = await storage.getCounsellors();
+      res.json(counsellors);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch counsellors" });
+    }
+  });
+
+  app.get("/api/counsellors/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const counsellor = await storage.getCounsellor(id);
+      if (!counsellor) {
+        return res.status(404).json({ message: "Counsellor not found" });
+      }
+      res.json(counsellor);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch counsellor" });
+    }
+  });
+
+  app.post("/api/counsellors", async (req, res) => {
+    try {
+      const validatedData = insertCounsellorSchema.parse(req.body);
+      const counsellor = await storage.createCounsellor(validatedData);
+      res.status(201).json(counsellor);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid counsellor data" });
+    }
+  });
+
+  // Counselling Bookings
+  app.get("/api/counselling-bookings", authenticateUser, async (req: any, res) => {
+    try {
+      const bookings = await storage.getCounsellingBookings(req.user.id);
+      res.json(bookings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  app.post("/api/counselling-bookings", authenticateUser, async (req: any, res) => {
+    try {
+      const validatedData = insertCounsellingBookingSchema.parse({
+        ...req.body,
+        userId: req.user.id
+      });
+
+      // Calculate total cost based on counsellor's rate and session duration
+      const counsellor = await storage.getCounsellor(validatedData.counsellorId);
+      if (!counsellor) {
+        return res.status(404).json({ message: "Counsellor not found" });
+      }
+
+      const totalCost = (parseFloat(counsellor.hourlyRate) / 60) * counsellor.sessionDuration;
+      
+      const booking = await storage.createCounsellingBooking({
+        ...validatedData,
+        duration: counsellor.sessionDuration,
+        totalCost: totalCost.toString()
+      });
+
+      res.status(201).json(booking);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid booking data" });
+    }
+  });
+
+  app.patch("/api/counselling-bookings/:id", authenticateUser, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const booking = await storage.updateCounsellingBooking(id, req.body);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      res.json(booking);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to update booking" });
     }
   });
 

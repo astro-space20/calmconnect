@@ -13,13 +13,19 @@ import {
   type InsertEmpathyCheckin,
   type OtpCode,
   type InsertOtp,
+  type Counsellor,
+  type InsertCounsellor,
+  type CounsellingBooking,
+  type InsertCounsellingBooking,
   users,
   activities,
   nutritionLogs,
   socialExposures,
   thoughtJournals,
   empathyCheckins,
-  otpCodes
+  otpCodes,
+  counsellors,
+  counsellingBookings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, lt, sql } from "drizzle-orm";
@@ -61,6 +67,16 @@ export interface IStorage {
   // Empathy Check-ins
   getEmpathyCheckins(userId: string, limit?: number): Promise<EmpathyCheckin[]>;
   createEmpathyCheckin(checkin: InsertEmpathyCheckin): Promise<EmpathyCheckin>;
+
+  // Counsellors
+  getCounsellors(): Promise<Counsellor[]>;
+  getCounsellor(id: string): Promise<Counsellor | undefined>;
+  createCounsellor(counsellor: InsertCounsellor): Promise<Counsellor>;
+
+  // Counselling Bookings
+  getCounsellingBookings(userId: string): Promise<CounsellingBooking[]>;
+  createCounsellingBooking(booking: InsertCounsellingBooking): Promise<CounsellingBooking>;
+  updateCounsellingBooking(id: string, updates: Partial<CounsellingBooking>): Promise<CounsellingBooking | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -276,6 +292,65 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return checkin;
+  }
+
+  // Counsellors
+  async getCounsellors(): Promise<Counsellor[]> {
+    const result = await db.select().from(counsellors).where(eq(counsellors.isActive, true));
+    return result;
+  }
+
+  async getCounsellor(id: string): Promise<Counsellor | undefined> {
+    const [counsellor] = await db
+      .select()
+      .from(counsellors)
+      .where(and(eq(counsellors.id, id), eq(counsellors.isActive, true)));
+    return counsellor || undefined;
+  }
+
+  async createCounsellor(insertCounsellor: InsertCounsellor): Promise<Counsellor> {
+    const [counsellor] = await db
+      .insert(counsellors)
+      .values({
+        ...insertCounsellor,
+        isActive: true,
+        createdAt: new Date(),
+      })
+      .returning();
+    return counsellor;
+  }
+
+  // Counselling Bookings
+  async getCounsellingBookings(userId: string): Promise<CounsellingBooking[]> {
+    const result = await db
+      .select()
+      .from(counsellingBookings)
+      .where(eq(counsellingBookings.userId, userId))
+      .orderBy(sql`created_at DESC`)
+      .limit(20);
+    return result;
+  }
+
+  async createCounsellingBooking(insertBooking: InsertCounsellingBooking): Promise<CounsellingBooking> {
+    const [booking] = await db
+      .insert(counsellingBookings)
+      .values({
+        ...insertBooking,
+        status: "pending",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return booking;
+  }
+
+  async updateCounsellingBooking(id: string, updates: Partial<CounsellingBooking>): Promise<CounsellingBooking | undefined> {
+    const [booking] = await db
+      .update(counsellingBookings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(counsellingBookings.id, id))
+      .returning();
+    return booking || undefined;
   }
 }
 

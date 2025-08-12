@@ -14,6 +14,7 @@ import CBTExercises from "@/pages/cbt-exercises";
 import Progress from "@/pages/progress";
 import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
+import Counselling from "@/pages/counselling";
 
 function Router() {
   return (
@@ -52,6 +53,11 @@ function Router() {
       <Route path="/cbt-exercises">
         <ProtectedRoute>
           <CBTExercises />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/counselling">
+        <ProtectedRoute>
+          <Counselling />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />
