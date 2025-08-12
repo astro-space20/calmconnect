@@ -8,6 +8,8 @@ import BottomNavigation from "@/components/bottom-navigation";
 import ThoughtForm from "@/components/thought-form";
 import { Button } from "@/components/ui/button";
 import InsightsDashboard from "@/components/insights-dashboard";
+import AIAssistanceButton from "@/components/ai-assistance-button";
+import DetailedAnalysisButton from "@/components/detailed-analysis-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +75,11 @@ export default function ThoughtJournal() {
         {/* AI Insights Dashboard */}
         <div className="mb-6">
           <InsightsDashboard />
+        </div>
+
+        {/* Detailed AI Analysis */}
+        <div className="mb-6">
+          <DetailedAnalysisButton />
         </div>
 
         <div className="mb-6">
@@ -149,9 +156,13 @@ export default function ThoughtJournal() {
                     </div>
                   )}
                   
-                  <p className="text-xs text-gray-500">
-                    {new Date(journal.createdAt).toLocaleDateString()}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      {new Date(journal.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  <AIAssistanceButton journalId={journal.id} />
                 </CardContent>
               </Card>
             ))}

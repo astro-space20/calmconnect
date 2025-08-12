@@ -1,5 +1,6 @@
 // Free AI analysis for CBT thought journal entries
 // Uses pattern matching and rule-based analysis instead of external APIs
+import type { ThoughtJournal } from "@shared/schema";
 
 interface CognitiveDistortion {
   name: string;
@@ -238,6 +239,121 @@ export function analyzeCBTEntry(
     reframingExamples,
     strengths
   };
+}
+
+export function getDetailedAnalysis(journals: ThoughtJournal[]): {
+  patterns: string[];
+  progress: string[];
+  recommendations: string[];
+  overallTrend: 'improving' | 'stable' | 'concerning';
+} {
+  if (journals.length === 0) {
+    return {
+      patterns: ["Not enough data to identify patterns"],
+      progress: ["Start journaling to track your progress"],
+      recommendations: ["Begin with daily thought tracking", "Practice identifying emotions", "Try reframing exercises"],
+      overallTrend: 'stable'
+    };
+  }
+
+  const recentJournals = journals.slice(-10); // Last 10 entries
+  const averageIntensity = recentJournals.reduce((sum, j) => sum + j.emotionIntensity, 0) / recentJournals.length;
+  const commonEmotions = getCommonEmotions(recentJournals);
+  const reframingRate = recentJournals.filter(j => j.reframedThought).length / recentJournals.length;
+  
+  // Analyze intensity trend
+  const firstHalf = recentJournals.slice(0, Math.floor(recentJournals.length / 2));
+  const secondHalf = recentJournals.slice(Math.floor(recentJournals.length / 2));
+  const firstHalfAvg = firstHalf.reduce((sum, j) => sum + j.emotionIntensity, 0) / firstHalf.length;
+  const secondHalfAvg = secondHalf.reduce((sum, j) => sum + j.emotionIntensity, 0) / secondHalf.length;
+  
+  const patterns = [];
+  const progress = [];
+  const recommendations = [];
+  
+  // Pattern analysis
+  if (commonEmotions.length > 0) {
+    patterns.push(`Most frequent emotions: ${commonEmotions.slice(0, 3).join(", ")}`);
+  }
+  
+  if (averageIntensity >= 7) {
+    patterns.push("High emotional intensity episodes are common");
+  } else if (averageIntensity <= 3) {
+    patterns.push("Generally low emotional intensity - good emotional regulation");
+  }
+  
+  // Check for common cognitive distortions
+  const catastrophicThoughts = recentJournals.filter(j => 
+    j.negativeThought.toLowerCase().includes('always') ||
+    j.negativeThought.toLowerCase().includes('never') ||
+    j.negativeThought.toLowerCase().includes('worst') ||
+    j.negativeThought.toLowerCase().includes('terrible')
+  );
+  
+  if (catastrophicThoughts.length > recentJournals.length * 0.4) {
+    patterns.push("Tendency towards catastrophic thinking patterns");
+  }
+  
+  // Progress analysis
+  if (secondHalfAvg < firstHalfAvg - 1) {
+    progress.push("Emotional intensity has decreased over time - great progress!");
+  } else if (secondHalfAvg > firstHalfAvg + 1) {
+    progress.push("Emotional intensity has increased recently - consider additional support");
+  } else {
+    progress.push("Emotional intensity has remained stable");
+  }
+  
+  if (reframingRate > 0.7) {
+    progress.push("Excellent use of thought reframing techniques");
+  } else if (reframingRate > 0.3) {
+    progress.push("Good progress with thought reframing");
+  } else {
+    progress.push("More practice needed with thought reframing");
+  }
+  
+  // Recommendations
+  if (reframingRate < 0.5) {
+    recommendations.push("Practice reframing negative thoughts more consistently");
+  }
+  
+  if (averageIntensity > 6) {
+    recommendations.push("Consider stress reduction techniques like deep breathing");
+    recommendations.push("Try progressive muscle relaxation exercises");
+  }
+  
+  if (commonEmotions.includes("anxious") || commonEmotions.includes("worried")) {
+    recommendations.push("Explore grounding techniques like 5-4-3-2-1 method");
+  }
+  
+  if (journals.length < 5) {
+    recommendations.push("Continue daily journaling to build better awareness");
+  }
+  
+  // Overall trend
+  let overallTrend: 'improving' | 'stable' | 'concerning';
+  if (secondHalfAvg < firstHalfAvg - 0.5 && reframingRate > 0.5) {
+    overallTrend = 'improving';
+  } else if (secondHalfAvg > firstHalfAvg + 1 || averageIntensity > 7) {
+    overallTrend = 'concerning';
+  } else {
+    overallTrend = 'stable';
+  }
+  
+  return { patterns, progress, recommendations, overallTrend };
+}
+
+function getCommonEmotions(journals: ThoughtJournal[]): string[] {
+  const emotionCounts: Record<string, number> = {};
+  
+  journals.forEach(journal => {
+    const emotion = journal.emotion.toLowerCase();
+    emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
+  });
+  
+  return Object.entries(emotionCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([emotion]) => emotion);
 }
 
 export function getInsightSummary(entries: any[]): string {

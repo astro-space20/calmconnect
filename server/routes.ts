@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { analyzeCBTEntry, getInsightSummary } from "./ai-analysis";
+import { analyzeCBTEntry, getInsightSummary, getDetailedAnalysis } from "./ai-analysis";
 import { 
   insertActivitySchema,
   insertNutritionLogSchema,
@@ -370,6 +370,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ insights });
     } catch (error) {
       res.status(500).json({ message: "Failed to get insights" });
+    }
+  });
+
+  // Get detailed analysis across multiple thought journals
+  app.get("/api/thought-journals/detailed-analysis", authenticateUser, async (req: any, res) => {
+    try {
+      const journals = await storage.getThoughtJournals(req.user.id);
+      const analysis = getDetailedAnalysis(journals);
+      res.json({ analysis });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get detailed analysis" });
     }
   });
 
