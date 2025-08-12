@@ -55,6 +55,7 @@ export interface IStorage {
   
   // Thought Journals
   getThoughtJournals(userId: string, limit?: number): Promise<ThoughtJournal[]>;
+  getThoughtJournal(id: string): Promise<ThoughtJournal | undefined>;
   createThoughtJournal(journal: InsertThoughtJournal): Promise<ThoughtJournal>;
   
   // Empathy Check-ins
@@ -235,6 +236,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(thoughtJournals.userId, userId))
       .orderBy(thoughtJournals.createdAt)
       .limit(limit);
+  }
+
+  async getThoughtJournal(id: string): Promise<ThoughtJournal | undefined> {
+    const [journal] = await db
+      .select()
+      .from(thoughtJournals)
+      .where(eq(thoughtJournals.id, id));
+    return journal || undefined;
   }
 
   async createThoughtJournal(insertJournal: InsertThoughtJournal): Promise<ThoughtJournal> {

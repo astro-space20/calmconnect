@@ -7,6 +7,7 @@ import MobileLayout from "@/components/mobile-layout";
 import BottomNavigation from "@/components/bottom-navigation";
 import ThoughtForm from "@/components/thought-form";
 import { Button } from "@/components/ui/button";
+import InsightsDashboard from "@/components/insights-dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +70,11 @@ export default function ThoughtJournal() {
 
       {/* Main Content */}
       <main className="px-6 py-6 pb-24">
+        {/* AI Insights Dashboard */}
+        <div className="mb-6">
+          <InsightsDashboard />
+        </div>
+
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-2">CBT Thought Tracking</h2>
           <p className="text-sm text-gray-600">

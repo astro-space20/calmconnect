@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { analyzeCBTEntry, getInsightSummary } from "./ai-analysis";
 import { 
   insertActivitySchema,
   insertNutritionLogSchema,
@@ -297,7 +298,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user.id
       });
       const journal = await storage.createThoughtJournal(validatedData);
-      res.status(201).json(journal);
+      
+      // Perform AI analysis on the entry
+      const analysis = analyzeCBTEntry(
+        validatedData.situation,
+        validatedData.negativeThought,
+        validatedData.emotion,
+        validatedData.emotionIntensity
+      );
+      
+      res.status(201).json({ 
+        journal, 
+        analysis 
+      });
     } catch (error) {
       res.status(400).json({ message: "Invalid thought journal data" });
     }
@@ -323,6 +336,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(checkin);
     } catch (error) {
       res.status(400).json({ message: "Invalid empathy check-in data" });
+    }
+  });
+
+  // AI Analysis for existing thought journal entry
+  app.post("/api/thought-journals/:id/analyze", authenticateUser, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const journal = await storage.getThoughtJournal(id);
+      
+      if (!journal || journal.userId !== req.user.id) {
+        return res.status(404).json({ message: "Thought journal not found" });
+      }
+      
+      const analysis = analyzeCBTEntry(
+        journal.situation,
+        journal.negativeThought,
+        journal.emotion,
+        journal.emotionIntensity
+      );
+      
+      res.json({ analysis });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to analyze thought journal" });
+    }
+  });
+
+  // Get insights summary for all thought journals
+  app.get("/api/thought-journals/insights", authenticateUser, async (req: any, res) => {
+    try {
+      const journals = await storage.getThoughtJournals(req.user.id);
+      const insights = getInsightSummary(journals);
+      res.json({ insights });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get insights" });
     }
   });
 

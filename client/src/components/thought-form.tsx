@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import AIAnalysisCard from "@/components/ai-analysis-card";
 
 interface ThoughtFormProps {
   onSuccess?: () => void;
@@ -19,6 +20,7 @@ const USER_ID = "demo-user";
 
 export default function ThoughtForm({ onSuccess }: ThoughtFormProps) {
   const [emotionIntensity, setEmotionIntensity] = useState([5]);
+  const [analysis, setAnalysis] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -35,12 +37,18 @@ export default function ThoughtForm({ onSuccess }: ThoughtFormProps) {
       const response = await apiRequest("POST", "/api/thought-journals", data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/thought-journals"] });
       toast({
         title: "Thought journal saved!",
         description: "Great work challenging and reframing your thoughts!",
       });
+      
+      // Set analysis from response
+      if (data.analysis) {
+        setAnalysis(data.analysis);
+      }
+      
       onSuccess?.();
     },
     onError: () => {
@@ -152,6 +160,13 @@ export default function ThoughtForm({ onSuccess }: ThoughtFormProps) {
       >
         {mutation.isPending ? "Saving..." : "Save Thought Journal"}
       </Button>
+
+      {/* Show AI Analysis after submission */}
+      {analysis && (
+        <div className="mt-6">
+          <AIAnalysisCard analysis={analysis} />
+        </div>
+      )}
     </form>
   );
 }
