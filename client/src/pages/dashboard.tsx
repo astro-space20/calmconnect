@@ -6,7 +6,7 @@ import type { Activity as ActivityType, NutritionLog, SocialExposure } from "@sh
 import MobileLayout from "@/components/mobile-layout";
 import BottomNavigation from "@/components/bottom-navigation";
 import MoodSelector from "@/components/mood-selector";
-import DailySocialMotivation from "@/components/daily-social-motivation";
+
 
 // Mock user ID for demo
 const USER_ID = "demo-user";
@@ -56,9 +56,6 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="px-6 pb-24 -mt-4">
-        
-        {/* Daily Social Motivation */}
-        <DailySocialMotivation />
         
         {/* Today's Progress */}
         <section className="bg-white rounded-2xl p-5 mb-6 card-shadow animate-fade-in">

@@ -7,6 +7,7 @@ import MobileLayout from "@/components/mobile-layout";
 import BottomNavigation from "@/components/bottom-navigation";
 import SocialForm from "@/components/social-form";
 import { PreExposureMotivation, PostExposureFeedback } from "@/components/social-exposure-ai";
+import DailySocialMotivation from "@/components/daily-social-motivation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -122,6 +123,9 @@ export default function SocialTracker() {
 
       {/* Main Content */}
       <main className="px-6 py-6 pb-24">
+        {/* Daily Social Motivation */}
+        <DailySocialMotivation />
+        
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-2">Social Exposures</h2>
           <p className="text-sm text-gray-600">
