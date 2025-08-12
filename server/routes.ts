@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { analyzeCBTEntry, getInsightSummary, getDetailedAnalysis } from "./ai-analysis";
 import { getPersonalizedGuidance, getPostExerciseFeedback } from "./cbt-ai-guidance";
 import { getMoodSupportWithContext } from "./mood-ai-support";
+import { getPreExposureMotivation, getPostExposureSupport, getDailyExposureMotivation } from "./social-exposure-ai";
 import { 
   insertActivitySchema,
   insertNutritionLogSchema,
@@ -445,6 +446,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ support });
     } catch (error) {
       res.status(500).json({ message: "Failed to get mood support" });
+    }
+  });
+
+  // Social Exposure AI Motivation
+  app.post("/api/social-exposures/motivation", authenticateUser, async (req: any, res) => {
+    try {
+      const { exposureType, anxietyLevel, description, isFirstTime } = req.body;
+      
+      // Get user's recent exposure history
+      const recentExposures = await storage.getSocialExposures(req.user.id);
+      const exposureHistory = recentExposures.slice(-10); // Last 10 exposures
+      
+      const recentAttempts = exposureHistory.filter(exp => 
+        exp.exposureType.toLowerCase().includes(exposureType.toLowerCase()) ||
+        exposureType.toLowerCase().includes(exp.exposureType.toLowerCase())
+      ).length;
+      
+      const successRate = recentAttempts > 0 ? 
+        exposureHistory.filter(exp => exp.completed).length / recentAttempts : 0;
+      
+      const context = {
+        exposureType: exposureType || "conversation",
+        anxietyLevel: anxietyLevel || 5,
+        description: description || "",
+        isFirstTime: isFirstTime || false,
+        recentAttempts,
+        successRate
+      };
+      
+      const motivation = getPreExposureMotivation(context);
+      res.json({ motivation });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get exposure motivation" });
+    }
+  });
+
+  app.post("/api/social-exposures/feedback", authenticateUser, async (req: any, res) => {
+    try {
+      const { 
+        exposureType, 
+        anxietyLevel, 
+        description, 
+        isFirstTime, 
+        completed, 
+        beforeAnxiety, 
+        afterAnxiety, 
+        notes 
+      } = req.body;
+      
+      // Get user's recent exposure history for context
+      const recentExposures = await storage.getSocialExposures(req.user.id);
+      const exposureHistory = recentExposures.slice(-10);
+      
+      const recentAttempts = exposureHistory.filter(exp => 
+        exp.exposureType.toLowerCase().includes(exposureType.toLowerCase()) ||
+        exposureType.toLowerCase().includes(exp.exposureType.toLowerCase())
+      ).length;
+      
+      const successRate = recentAttempts > 0 ? 
+        exposureHistory.filter(exp => exp.completed).length / recentAttempts : 0;
+      
+      const context = {
+        exposureType: exposureType || "conversation",
+        anxietyLevel: anxietyLevel || 5,
+        description: description || "",
+        isFirstTime: isFirstTime || false,
+        recentAttempts,
+        successRate
+      };
+      
+      const feedback = getPostExposureSupport(
+        context,
+        completed || false,
+        beforeAnxiety || 5,
+        afterAnxiety || 5,
+        notes
+      );
+      
+      res.json({ feedback });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get exposure feedback" });
+    }
+  });
+
+  app.get("/api/social-exposures/daily-motivation", authenticateUser, async (req: any, res) => {
+    try {
+      const exposures = await storage.getSocialExposures(req.user.id);
+      const user = await storage.getUser(req.user.id);
+      
+      const recentExposures = exposures.map(exp => ({
+        completed: exp.completed,
+        anxietyBefore: exp.anxietyBefore,
+        createdAt: exp.createdAt
+      }));
+      
+      const motivation = getDailyExposureMotivation(recentExposures, user?.name);
+      res.json({ motivation });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get daily motivation" });
     }
   });
 

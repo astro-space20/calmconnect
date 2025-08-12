@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus, CheckCircle } from "lucide-react";
+import { ArrowLeft, Plus, CheckCircle, Brain } from "lucide-react";
 import { Link } from "wouter";
 import type { SocialExposure } from "@shared/schema";
 import MobileLayout from "@/components/mobile-layout";
 import BottomNavigation from "@/components/bottom-navigation";
 import SocialForm from "@/components/social-form";
+import { PreExposureMotivation, PostExposureFeedback } from "@/components/social-exposure-ai";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -24,6 +25,8 @@ export default function SocialTracker() {
   const [actualEnergy, setActualEnergy] = useState([5]);
   const [wentWell, setWentWell] = useState("");
   const [tryDifferently, setTryDifferently] = useState("");
+  const [showMotivation, setShowMotivation] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState<string | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -47,6 +50,7 @@ export default function SocialTracker() {
       setWentWell("");
       setTryDifferently("");
       setActualEnergy([5]);
+      setShowFeedback(completingExposure.id);
     },
   });
 
@@ -156,18 +160,38 @@ export default function SocialTracker() {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">{exposure.title}</CardTitle>
                     {exposure.completed ? (
-                      <Badge className="bg-accent text-white">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Done
-                      </Badge>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setShowFeedback(exposure.id)}
+                        >
+                          <Brain className="w-3 h-3 mr-1" />
+                          Feedback
+                        </Button>
+                        <Badge className="bg-accent text-white">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Done
+                        </Badge>
+                      </div>
                     ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleCompleteExposure(exposure)}
-                      >
-                        Complete
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setShowMotivation(exposure.id)}
+                        >
+                          <Brain className="w-3 h-3 mr-1" />
+                          AI Support
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleCompleteExposure(exposure)}
+                        >
+                          Complete
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </CardHeader>
@@ -209,6 +233,58 @@ export default function SocialTracker() {
               </Card>
             ))}
           </div>
+        )}
+
+        {/* AI Motivation Dialog */}
+        {showMotivation && (
+          <Dialog open={!!showMotivation} onOpenChange={() => setShowMotivation(null)}>
+            <DialogContent className="max-w-sm mx-auto max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>AI Motivation & Support</DialogTitle>
+              </DialogHeader>
+              {(() => {
+                const exposure = socialExposures?.find(e => e.id === showMotivation);
+                if (!exposure) return null;
+                
+                return (
+                  <PreExposureMotivation
+                    exposureType={exposure.exposureType}
+                    anxietyLevel={exposure.anxietyBefore}
+                    description={exposure.description || ""}
+                    isFirstTime={!socialExposures.some(e => e.exposureType === exposure.exposureType && e.id !== exposure.id)}
+                  />
+                );
+              })()}
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* AI Feedback Dialog */}
+        {showFeedback && (
+          <Dialog open={!!showFeedback} onOpenChange={() => setShowFeedback(null)}>
+            <DialogContent className="max-w-sm mx-auto max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>AI Insights & Celebration</DialogTitle>
+              </DialogHeader>
+              {(() => {
+                const exposure = socialExposures?.find(e => e.id === showFeedback);
+                if (!exposure) return null;
+                
+                return (
+                  <PostExposureFeedback
+                    exposureType={exposure.exposureType}
+                    anxietyLevel={exposure.anxietyBefore}
+                    description={exposure.description || ""}
+                    isFirstTime={!socialExposures.some(e => e.exposureType === exposure.exposureType && e.id !== exposure.id)}
+                    completed={true}
+                    beforeAnxiety={exposure.anxietyBefore}
+                    afterAnxiety={exposure.anxietyAfter || exposure.anxietyBefore}
+                    notes={exposure.wentWell || exposure.tryDifferently}
+                  />
+                );
+              })()}
+            </DialogContent>
+          </Dialog>
         )}
       </main>
 
