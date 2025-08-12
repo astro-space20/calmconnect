@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Play, Pause, RotateCcw, Volume2, Clock } from "lucide-react";
+import { ArrowLeft, Play, Pause, RotateCcw, Volume2, Clock, Brain } from "lucide-react";
 import { Link } from "wouter";
 import MobileLayout from "@/components/mobile-layout";
 import BottomNavigation from "@/components/bottom-navigation";
+import AIExerciseGuidance from "@/components/ai-exercise-guidance";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -244,6 +245,9 @@ export default function CBTExercises() {
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [showAIGuidance, setShowAIGuidance] = useState(false);
+  const [exerciseCompleted, setExerciseCompleted] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -323,6 +327,8 @@ export default function CBTExercises() {
     if (nextIndex >= selectedExercise.steps.length) {
       // Exercise completed
       setIsPlaying(false);
+      setExerciseCompleted(true);
+      setShowFeedback(true);
       speak("Great job! You've completed this exercise. Take a moment to notice how you feel.");
       return;
     }
@@ -362,6 +368,9 @@ export default function CBTExercises() {
     setIsPaused(false);
     setProgress(0);
     setTimeRemaining(0);
+    setExerciseCompleted(false);
+    setShowFeedback(false);
+    setShowAIGuidance(false);
   };
 
   // Cleanup
@@ -469,6 +478,134 @@ export default function CBTExercises() {
     );
   }
 
+  // Exercise completed with feedback form
+  if (selectedExercise && exerciseCompleted) {
+    return (
+      <MobileLayout>
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <Button variant="ghost" size="sm" onClick={resetExercise}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Exercises
+            </Button>
+            <h1 className="text-lg font-semibold text-gray-800">
+              Exercise Complete
+            </h1>
+            <div className="w-16" /> {/* Spacer */}
+          </div>
+
+          {/* Completion Message */}
+          <Card className="mb-6 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Brain className="w-8 h-8 text-green-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                Well Done!
+              </h2>
+              <p className="text-gray-600">
+                You've completed {selectedExercise.title}. Let's reflect on your experience.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* AI Feedback Form */}
+          <AIExerciseGuidance
+            exerciseType={selectedExercise.id}
+            exerciseTitle={selectedExercise.title}
+            showFeedbackForm={true}
+            onFeedbackSubmitted={() => setShowFeedback(false)}
+          />
+
+          {/* Try Another Exercise */}
+          <Card className="mt-6 border-0 bg-white/50">
+            <CardContent className="p-4">
+              <Button 
+                onClick={resetExercise}
+                className="w-full gradient-bg hover:opacity-90"
+              >
+                Try Another Exercise
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <BottomNavigation />
+      </MobileLayout>
+    );
+  }
+
+  // Exercise selected but not started - show AI guidance option
+  if (selectedExercise && !isPlaying) {
+    return (
+      <MobileLayout>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedExercise(null)}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-lg font-semibold text-gray-800">
+              Prepare for Exercise
+            </h1>
+            <div className="w-16" /> {/* Spacer */}
+          </div>
+
+          {/* Exercise Details */}
+          <Card className="mb-6 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>{selectedExercise.title}</span>
+                <Badge className={getCategoryColor(selectedExercise.category)}>
+                  {selectedExercise.category}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">{selectedExercise.description}</p>
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <div className="flex items-center">
+                  <Clock className="w-4 h-4 mr-1" />
+                  {selectedExercise.duration} minutes
+                </div>
+                <div className="flex items-center">
+                  <div 
+                    className={`w-2 h-2 rounded-full mr-2 ${getDifficultyColor(selectedExercise.difficulty)}`}
+                  />
+                  {selectedExercise.difficulty}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Guidance Section */}
+          <div className="mb-6">
+            <AIExerciseGuidance
+              exerciseType={selectedExercise.id}
+              exerciseTitle={selectedExercise.title}
+              onGuidanceReceived={() => setShowAIGuidance(true)}
+            />
+          </div>
+
+          {/* Start Exercise Button */}
+          <Card className="border-0 bg-white/50">
+            <CardContent className="p-4">
+              <Button 
+                onClick={() => startExercise(selectedExercise)}
+                className="w-full gradient-bg hover:opacity-90 text-lg py-6"
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Start Exercise
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <BottomNavigation />
+      </MobileLayout>
+    );
+  }
+
   return (
     <MobileLayout>
       {/* Header */}
@@ -519,7 +656,7 @@ export default function CBTExercises() {
               <CardContent className="pt-0">
                 <Button 
                   className="w-full gradient-bg hover:opacity-90"
-                  onClick={() => startExercise(exercise)}
+                  onClick={() => setSelectedExercise(exercise)}
                 >
                   <Play className="w-4 h-4 mr-2" />
                   Start Exercise

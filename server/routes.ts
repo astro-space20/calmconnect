@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { analyzeCBTEntry, getInsightSummary, getDetailedAnalysis } from "./ai-analysis";
+import { getPersonalizedGuidance, getPostExerciseFeedback } from "./cbt-ai-guidance";
 import { 
   insertActivitySchema,
   insertNutritionLogSchema,
@@ -381,6 +382,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ analysis });
     } catch (error) {
       res.status(500).json({ message: "Failed to get detailed analysis" });
+    }
+  });
+
+  // CBT Exercise AI Guidance
+  app.post("/api/cbt-exercises/guidance", authenticateUser, async (req: any, res) => {
+    try {
+      const { exerciseType, currentMood, anxietyLevel } = req.body;
+      
+      // Get user's recent thought journals and exercise history
+      const recentJournals = await storage.getThoughtJournals(req.user.id);
+      
+      const userState = {
+        currentMood: currentMood || "neutral",
+        anxietyLevel: anxietyLevel || 5,
+        exerciseHistory: [], // Could be extended to track exercise history
+        recentThoughtJournals: recentJournals.slice(-10) // Last 10 entries
+      };
+      
+      const guidance = getPersonalizedGuidance(exerciseType, userState);
+      res.json({ guidance });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get exercise guidance" });
+    }
+  });
+
+  app.post("/api/cbt-exercises/feedback", authenticateUser, async (req: any, res) => {
+    try {
+      const { exerciseType, durationMinutes, effectiveness, mood } = req.body;
+      
+      const feedback = getPostExerciseFeedback(
+        exerciseType,
+        durationMinutes || 5,
+        effectiveness || 5,
+        mood || "neutral"
+      );
+      
+      res.json({ feedback });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get exercise feedback" });
     }
   });
 
