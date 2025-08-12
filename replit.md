@@ -10,6 +10,12 @@ CalmTrack is a comprehensive mental wellness application designed specifically t
 - **Real SMS Integration**: Twilio SMS service for actual text message delivery of OTP codes
 - **Protected Routes**: All tracking features secured behind authentication with JWT sessions
 - **User Management**: Logout functionality with user menu, automatic session handling
+- **AI Assistance Integration**: Comprehensive AI support across multiple features:
+  - **Thought Journal AI**: Individual entry analysis and multi-day journey insights
+  - **CBT Exercise Guidance**: Personalized pre-exercise coaching and post-exercise feedback
+  - **Mood Check-in Support**: Instant AI-powered validation and motivation for mood selections
+- **Enhanced CBT System**: 4 audio-guided exercises with AI-powered personalized guidance
+- **Smart Analytics**: Pattern recognition and progress tracking with actionable insights
 
 ## User Preferences
 

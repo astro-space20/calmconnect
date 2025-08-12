@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { analyzeCBTEntry, getInsightSummary, getDetailedAnalysis } from "./ai-analysis";
 import { getPersonalizedGuidance, getPostExerciseFeedback } from "./cbt-ai-guidance";
+import { getMoodSupportWithContext } from "./mood-ai-support";
 import { 
   insertActivitySchema,
   insertNutritionLogSchema,
@@ -421,6 +422,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ feedback });
     } catch (error) {
       res.status(500).json({ message: "Failed to get exercise feedback" });
+    }
+  });
+
+  // Mood Check-in AI Support
+  app.post("/api/mood-support", authenticateUser, async (req: any, res) => {
+    try {
+      const { moodEmoji } = req.body;
+      
+      if (!moodEmoji) {
+        return res.status(400).json({ message: "Mood emoji is required" });
+      }
+      
+      // Get user's recent mood history (could be extended to store mood logs)
+      const recentMoods: Array<{ mood: string; timestamp: Date }> = [];
+      
+      // Get user name for personalization
+      const user = await storage.getUser(req.user.id);
+      const userName = user?.name;
+      
+      const support = getMoodSupportWithContext(moodEmoji, recentMoods, userName);
+      res.json({ support });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get mood support" });
     }
   });
 
