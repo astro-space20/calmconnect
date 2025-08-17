@@ -442,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get user name for personalization
       const user = await storage.getUser(req.user.id);
-      const userName = user?.name;
+      const userName = user?.name || "Guest";
       
       const support = getMoodSupportWithContext(moodEmoji, recentMoods, userName);
       res.json({ support });
@@ -461,12 +461,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const exposureHistory = recentExposures.slice(-10); // Last 10 exposures
       
       const recentAttempts = exposureHistory.filter(exp => 
-        exp.exposureType.toLowerCase().includes(exposureType.toLowerCase()) ||
-        exposureType.toLowerCase().includes(exp.exposureType.toLowerCase())
+        exp.title.toLowerCase().includes(exposureType.toLowerCase()) ||
+        exposureType.toLowerCase().includes(exp.title.toLowerCase())
       ).length;
       
       const successRate = recentAttempts > 0 ? 
-        exposureHistory.filter(exp => exp.completed).length / recentAttempts : 0;
+        exposureHistory.filter(exp => exp.completed === 1).length / recentAttempts : 0;
       
       const context = {
         exposureType: exposureType || "conversation",
@@ -502,12 +502,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const exposureHistory = recentExposures.slice(-10);
       
       const recentAttempts = exposureHistory.filter(exp => 
-        exp.exposureType.toLowerCase().includes(exposureType.toLowerCase()) ||
-        exposureType.toLowerCase().includes(exp.exposureType.toLowerCase())
+        exp.title.toLowerCase().includes(exposureType.toLowerCase()) ||
+        exposureType.toLowerCase().includes(exp.title.toLowerCase())
       ).length;
       
       const successRate = recentAttempts > 0 ? 
-        exposureHistory.filter(exp => exp.completed).length / recentAttempts : 0;
+        exposureHistory.filter(exp => exp.completed === 1).length / recentAttempts : 0;
       
       const context = {
         exposureType: exposureType || "conversation",
@@ -538,8 +538,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(req.user.id);
       
       const recentExposures = exposures.map(exp => ({
-        completed: exp.completed,
-        anxietyBefore: exp.anxietyBefore,
+        completed: exp.completed === 1,
+        anxietyBefore: exp.expectedEnergy || 5,
         createdAt: exp.createdAt
       }));
       

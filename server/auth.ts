@@ -49,7 +49,7 @@ export async function sendOTPSMS(phoneNumber: string, otpCode: string): Promise<
 
     if (accountSid && authToken && twilioPhone) {
       // Use Twilio for real SMS delivery
-      const twilio = require('twilio');
+      const { default: twilio } = await import('twilio');
       const client = twilio(accountSid, authToken);
 
       const message = await client.messages.create({
