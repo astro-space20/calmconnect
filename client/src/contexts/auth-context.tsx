@@ -2,8 +2,9 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 
 interface User {
   id: string;
-  phoneNumber: string;
-  name?: string;
+  email: string;
+  name: string;
+  profileImage?: string;
   isVerified: boolean;
 }
 
@@ -49,18 +50,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const response = await fetch('/api/auth/verify-token', {
-        method: 'POST',
+      const response = await fetch('/api/auth/user', {
+        method: 'GET',
         headers: {
+          'Authorization': `Bearer ${storedToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token: storedToken }),
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const userData = await response.json();
         setToken(storedToken);
-        setUser(data.user);
+        setUser(userData);
         setIsLoading(false);
         return true;
       } else {
