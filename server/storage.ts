@@ -374,6 +374,109 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return booking || undefined;
   }
+
+  // Wearable Devices
+  async getWearableDevices(userId: string): Promise<WearableDevice[]> {
+    return await db
+      .select()
+      .from(wearableDevices)
+      .where(eq(wearableDevices.userId, userId));
+  }
+
+  async getWearableDevice(userId: string, deviceType: string): Promise<WearableDevice | undefined> {
+    const [device] = await db
+      .select()
+      .from(wearableDevices)
+      .where(and(eq(wearableDevices.userId, userId), eq(wearableDevices.deviceType, deviceType)));
+    return device || undefined;
+  }
+
+  async createWearableDevice(device: InsertWearableDevice): Promise<WearableDevice> {
+    const [newDevice] = await db
+      .insert(wearableDevices)
+      .values(device)
+      .returning();
+    return newDevice;
+  }
+
+  async updateWearableDevice(id: string, updates: Partial<InsertWearableDevice>): Promise<WearableDevice | undefined> {
+    const [device] = await db
+      .update(wearableDevices)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(wearableDevices.id, id))
+      .returning();
+    return device || undefined;
+  }
+
+  async updateDeviceLastSync(userId: string, deviceType: string): Promise<void> {
+    await db
+      .update(wearableDevices)
+      .set({ lastSyncAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(wearableDevices.userId, userId), eq(wearableDevices.deviceType, deviceType)));
+  }
+
+  async disconnectWearableDevice(id: string): Promise<void> {
+    await db
+      .update(wearableDevices)
+      .set({ isConnected: false, accessToken: null, refreshToken: null, updatedAt: new Date() })
+      .where(eq(wearableDevices.id, id));
+  }
+
+  // Sleep Data
+  async createSleepData(sleepDataEntry: InsertSleepData): Promise<SleepData> {
+    const [newSleepData] = await db
+      .insert(sleepData)
+      .values(sleepDataEntry)
+      .returning();
+    return newSleepData;
+  }
+
+  async getSleepData(userId: string, startDate?: Date, endDate?: Date): Promise<SleepData[]> {
+    let query = db
+      .select()
+      .from(sleepData)
+      .where(eq(sleepData.userId, userId));
+
+    if (startDate && endDate) {
+      query = query.where(
+        and(
+          eq(sleepData.userId, userId),
+          sql`${sleepData.bedTime} >= ${startDate}`,
+          sql`${sleepData.bedTime} <= ${endDate}`
+        )
+      );
+    }
+
+    return await query.orderBy(sql`${sleepData.bedTime} DESC`);
+  }
+
+  // Heart Rate Data  
+  async createHeartRateData(heartRateEntry: InsertHeartRateData): Promise<HeartRateData> {
+    const [newHeartRateData] = await db
+      .insert(heartRateData)
+      .values(heartRateEntry)
+      .returning();
+    return newHeartRateData;
+  }
+
+  async getHeartRateData(userId: string, startDate?: Date, endDate?: Date): Promise<HeartRateData[]> {
+    let query = db
+      .select()
+      .from(heartRateData)
+      .where(eq(heartRateData.userId, userId));
+
+    if (startDate && endDate) {
+      query = query.where(
+        and(
+          eq(heartRateData.userId, userId),
+          sql`${heartRateData.recordedAt} >= ${startDate}`,
+          sql`${heartRateData.recordedAt} <= ${endDate}`
+        )
+      );
+    }
+
+    return await query.orderBy(sql`${heartRateData.recordedAt} DESC`);
+  }
 }
 
 export const storage = new DatabaseStorage();

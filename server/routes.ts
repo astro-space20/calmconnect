@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { registerWearableRoutes } from "./wearable-routes";
 import { analyzeCBTEntry, getInsightSummary, getDetailedAnalysis } from "./ai-analysis";
 import { getPersonalizedGuidance, getPostExerciseFeedback } from "./cbt-ai-guidance";
 import { getMoodSupportWithContext } from "./mood-ai-support";
@@ -625,6 +626,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Failed to update booking" });
     }
   });
+
+  // Register wearable device routes
+  registerWearableRoutes(app);
 
   return httpServer;
 }

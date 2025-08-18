@@ -34,6 +34,45 @@ export const activities = pgTable("activities", {
   steps: integer("steps"), // daily steps count (null for time-based activities)
   feeling: text("feeling").notNull(), // emoji or scale
   notes: text("notes"),
+  metadata: jsonb("metadata"), // Device data: heartRate, caloriesBurned, distance, deviceType
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const wearableDevices = pgTable("wearable_devices", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  deviceType: text("device_type").notNull(), // fitbit, apple_health, google_fit, garmin, samsung_health
+  deviceName: text("device_name").notNull(),
+  isConnected: boolean("is_connected").default(true).notNull(),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  tokenExpiresAt: timestamp("token_expires_at"),
+  lastSyncAt: timestamp("last_sync_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const sleepData = pgTable("sleep_data", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  deviceType: text("device_type").notNull(),
+  bedTime: timestamp("bed_time").notNull(),
+  wakeTime: timestamp("wake_time").notNull(),
+  totalSleepMinutes: integer("total_sleep_minutes").notNull(),
+  deepSleepMinutes: integer("deep_sleep_minutes"),
+  lightSleepMinutes: integer("light_sleep_minutes"),
+  remSleepMinutes: integer("rem_sleep_minutes"),
+  restfulness: integer("restfulness").notNull(), // 1-10 scale
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const heartRateData = pgTable("heart_rate_data", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  deviceType: text("device_type").notNull(),
+  heartRate: integer("heart_rate").notNull(),
+  context: text("context").notNull(), // resting, active, exercise
+  recordedAt: timestamp("recorded_at").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -226,3 +265,26 @@ export type CounsellorTimeSlot = typeof counsellorTimeSlots.$inferSelect;
 export type InsertCounsellorTimeSlot = z.infer<typeof insertCounsellorTimeSlotSchema>;
 export type CounsellingBooking = typeof counsellingBookings.$inferSelect;
 export type InsertCounsellingBooking = z.infer<typeof insertCounsellingBookingSchema>;
+
+export const insertWearableDeviceSchema = createInsertSchema(wearableDevices).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSleepDataSchema = createInsertSchema(sleepData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertHeartRateDataSchema = createInsertSchema(heartRateData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type WearableDevice = typeof wearableDevices.$inferSelect;
+export type InsertWearableDevice = z.infer<typeof insertWearableDeviceSchema>;
+export type SleepData = typeof sleepData.$inferSelect;
+export type InsertSleepData = z.infer<typeof insertSleepDataSchema>;
+export type HeartRateData = typeof heartRateData.$inferSelect;
+export type InsertHeartRateData = z.infer<typeof insertHeartRateDataSchema>;

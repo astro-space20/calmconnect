@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, Watch } from "lucide-react";
 import { Link } from "wouter";
 import type { Activity } from "@shared/schema";
 import MobileLayout from "@/components/mobile-layout";
@@ -9,6 +9,8 @@ import ActivityForm from "@/components/activity-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import WearableDevices from "@/components/wearable-devices";
 
 const USER_ID = "demo-user";
 
@@ -68,12 +70,22 @@ export default function ActivityTracker() {
 
       {/* Main Content */}
       <main className="px-6 py-6 pb-24">
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">Your Activities</h2>
-          <p className="text-sm text-gray-600">
-            Track low-pressure physical activities to support your mental wellness.
-          </p>
-        </div>
+        <Tabs defaultValue="activities" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="activities">Activities</TabsTrigger>
+            <TabsTrigger value="devices">
+              <Watch className="w-4 h-4 mr-2" />
+              Devices
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="activities" className="space-y-6">
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-2">Your Activities</h2>
+              <p className="text-sm text-gray-600">
+                Track low-pressure physical activities to support your mental wellness.
+              </p>
+            </div>
 
         {!activities?.length ? (
           <Card className="text-center py-8">
@@ -128,6 +140,12 @@ export default function ActivityTracker() {
             ))}
           </div>
         )}
+          </TabsContent>
+          
+          <TabsContent value="devices">
+            <WearableDevices />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <BottomNavigation />
