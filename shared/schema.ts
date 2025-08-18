@@ -5,10 +5,13 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  phoneNumber: text("phone_number").notNull().unique(),
-  phoneNumberHash: text("phone_number_hash").notNull(),
+  googleId: text("google_id").unique(),
+  email: text("email").unique(),
   name: text("name"),
-  isVerified: boolean("is_verified").default(false).notNull(),
+  profileImage: text("profile_image"),
+  phoneNumber: text("phone_number").unique(),
+  phoneNumberHash: text("phone_number_hash"),
+  isVerified: boolean("is_verified").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastLoginAt: timestamp("last_login_at"),
 });

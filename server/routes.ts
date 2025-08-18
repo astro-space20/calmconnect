@@ -16,49 +16,42 @@ import {
   phoneAuthSchema,
   otpVerifySchema
 } from "@shared/schema";
-import { 
-  encryptPhoneNumber, 
-  hashPhoneNumber, 
-  generateOTP, 
-  generateJWT, 
-  sendOTPSMS, 
-  verifyJWT 
-} from "./auth";
+import { verifyJWT } from "./auth";
+import { configureGoogleAuth, generateJWTFromUser } from "./google-auth";
+import passport from "passport";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
-  // Authentication Routes
-  app.post("/api/auth/guest-login", async (req, res) => {
-    try {
-      // Create guest user with unique identifier
-      const guestId = "guest-" + Date.now();
-      const phoneHash = hashPhoneNumber(guestId);
-      const encryptedPhone = encryptPhoneNumber(guestId);
-      
-      const guestUser = await storage.createUser({
-        phoneNumber: encryptedPhone,
-        phoneNumberHash: phoneHash,
-        name: "Guest User",
-        isVerified: true, // Guest users don't need verification
-      });
+  // Configure Google OAuth
+  configureGoogleAuth();
+  app.use(passport.initialize());
 
-      // Generate JWT token
-      const token = generateJWT(guestUser.id, guestId);
+  // Google OAuth Routes
+  app.get("/api/auth/google", 
+    passport.authenticate("google", { scope: ["profile", "email"] })
+  );
 
-      res.json({
-        message: "Guest session created",
-        token,
-        user: {
-          id: guestUser.id,
-          phoneNumber: "Guest User"
+  app.get("/api/auth/google/callback",
+    passport.authenticate("google", { session: false }),
+    async (req: any, res) => {
+      try {
+        const user = req.user;
+        if (!user) {
+          return res.redirect("/login?error=auth_failed");
         }
-      });
-    } catch (error) {
-      console.error("Guest login error:", error);
-      res.status(500).json({ message: "Failed to create guest session" });
+
+        // Generate JWT token
+        const token = generateJWTFromUser(user);
+
+        // Redirect to frontend with token
+        res.redirect(`/?token=${token}`);
+      } catch (error) {
+        console.error("Google auth callback error:", error);
+        res.redirect("/login?error=auth_failed");
+      }
     }
-  });
+  );
 
   app.post("/api/auth/send-otp", async (req, res) => {
     try {
