@@ -13,6 +13,8 @@ import ThoughtJournal from "@/pages/thought-journal";
 import CBTExercises from "@/pages/cbt-exercises";
 import Progress from "@/pages/progress";
 import Login from "@/pages/login";
+import EmailLogin from "@/pages/email-login";
+import EmailRegister from "@/pages/email-register";
 import NotFound from "@/pages/not-found";
 import Counselling from "@/pages/counselling";
 
@@ -20,6 +22,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/email-login" component={EmailLogin} />
+      <Route path="/register" component={EmailRegister} />
       <Route path="/">
         <ProtectedRoute>
           <Dashboard />

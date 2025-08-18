@@ -30,10 +30,26 @@ export function generateJWT(userId: string, phoneNumber: string): string {
   );
 }
 
-export function verifyJWT(token: string): { userId: string; phoneNumber: string } | null {
+// Email authentication JWT
+export function generateEmailJWT(userId: string, email: string): string {
+  return jwt.sign(
+    { userId, email, type: 'email', timestamp: Date.now() },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+}
+
+export function verifyJWT(token: string): { userId: string; phoneNumber?: string; email?: string; type?: string } | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    return { userId: decoded.userId, phoneNumber: decoded.phoneNumber };
+    
+    // Handle both phone and email authentication tokens
+    if (decoded.type === 'email') {
+      return { userId: decoded.userId, email: decoded.email, type: decoded.type };
+    } else {
+      // Legacy phone authentication
+      return { userId: decoded.userId, phoneNumber: decoded.phoneNumber };
+    }
   } catch (error) {
     return null;
   }

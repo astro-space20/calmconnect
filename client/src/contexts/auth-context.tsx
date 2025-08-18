@@ -36,12 +36,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setToken(null);
     setUser(null);
+    // Remove both possible token storage keys
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('user_data');
   };
 
   const checkAuth = async (): Promise<boolean> => {
-    const storedToken = localStorage.getItem('auth_token');
+    // Check for both Google OAuth token and email auth token
+    const googleToken = localStorage.getItem('auth_token');
+    const emailToken = localStorage.getItem('authToken');
+    const storedToken = googleToken || emailToken;
     const storedUser = localStorage.getItem('user_data');
 
     if (!storedToken) {

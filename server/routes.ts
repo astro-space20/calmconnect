@@ -18,6 +18,13 @@ import {
   otpVerifySchema
 } from "@shared/schema";
 import { verifyJWT } from "./auth";
+import authenticateEmailUser from "./auth-middleware";
+import { emailAuthService } from './email-auth';
+import { 
+  emailRegistrationSchema,
+  emailLoginSchema, 
+  emailVerificationSchema 
+} from '@shared/schema';
 import { configureGoogleAuth, generateJWTFromUser } from "./google-auth";
 import passport from "passport";
 
@@ -629,6 +636,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register wearable device routes
   registerWearableRoutes(app);
+
+  // Email/Password Authentication Routes
+  
+  // Register with email/password
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const result = await emailAuthService.registerUser(req.body);
+      
+      if (result.success) {
+        res.status(201).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Registration route error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Registration failed. Please try again.' 
+      });
+    }
+  });
+
+  // Login with email/password
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const result = await emailAuthService.loginUser(req.body);
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(401).json(result);
+      }
+    } catch (error) {
+      console.error('Login route error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Login failed. Please try again.' 
+      });
+    }
+  });
+
+  // Verify email
+  app.post('/api/auth/verify-email', async (req, res) => {
+    try {
+      const result = await emailAuthService.verifyEmail(req.body);
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Email verification route error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Email verification failed. Please try again.' 
+      });
+    }
+  });
+
+  // Resend verification code
+  app.post('/api/auth/resend-verification', async (req, res) => {
+    try {
+      const { email } = req.body;
+      const result = await emailAuthService.resendVerificationCode(email);
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Resend verification route error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to resend verification code. Please try again.' 
+      });
+    }
+  });
+
+  // User profile route for email authentication
+  app.get('/api/user/profile', authenticateEmailUser, async (req: any, res) => {
+    try {
+      const user = req.user;
+      res.json({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profileImage: user.profileImage
+      });
+    } catch (error) {
+      console.error('User profile route error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch user profile' 
+      });
+    }
+  });
 
   return httpServer;
 }

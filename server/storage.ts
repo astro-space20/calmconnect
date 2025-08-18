@@ -26,7 +26,9 @@ import {
   otpCodes,
   counsellors,
   counsellingBookings
-} from "@shared/schema";
+, emailVerificationCodes,
+  type EmailVerificationCode,
+  type InsertEmailVerificationCode } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, lt, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -41,6 +43,12 @@ export interface IStorage {
   updateUserVerification(id: string, isVerified: boolean): Promise<User | undefined>;
   updateUserGoogleId(id: string, googleId: string): Promise<User | undefined>;
   updateUserLastLogin(id: string): Promise<void>;
+  
+  // Email verification
+  createEmailVerificationCode(verification: InsertEmailVerificationCode): Promise<EmailVerificationCode>;
+  getValidEmailVerificationCode(email: string, code: string): Promise<EmailVerificationCode | undefined>;
+  markEmailVerificationAsUsed(id: string): Promise<void>;
+  cleanupExpiredEmailVerifications(): Promise<void>;
   
   // OTP Codes
   createOtpCode(otp: InsertOtp): Promise<OtpCode>;
@@ -192,6 +200,47 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(otpCodes)
       .where(lt(otpCodes.expiresAt, new Date()));
+  }
+
+  // Email verification methods
+  async createEmailVerificationCode(verification: InsertEmailVerificationCode): Promise<EmailVerificationCode> {
+    const [code] = await db.insert(emailVerificationCodes).values(verification).returning();
+    return code;
+  }
+
+  async getValidEmailVerificationCode(email: string, code: string): Promise<EmailVerificationCode | undefined> {
+    const now = new Date();
+    const [verification] = await db
+      .select()
+      .from(emailVerificationCodes)
+      .where(
+        and(
+          eq(emailVerificationCodes.email, email),
+          eq(emailVerificationCodes.verificationCode, code),
+          eq(emailVerificationCodes.isUsed, false),
+          lt(emailVerificationCodes.attempts, 3)
+        )
+      );
+    
+    // Check expiration manually
+    if (verification && new Date(verification.expiresAt) > now) {
+      return verification;
+    }
+    
+    return undefined;
+  }
+
+  async markEmailVerificationAsUsed(id: string): Promise<void> {
+    await db
+      .update(emailVerificationCodes)
+      .set({ isUsed: true })
+      .where(eq(emailVerificationCodes.id, id));
+  }
+
+  async cleanupExpiredEmailVerifications(): Promise<void> {
+    await db
+      .delete(emailVerificationCodes)
+      .where(lt(emailVerificationCodes.expiresAt, new Date()));
   }
 
   // Activities

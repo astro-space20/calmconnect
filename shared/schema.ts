@@ -7,11 +7,14 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   googleId: text("google_id").unique(),
   email: text("email").unique(),
+  password: text("password"), // For email/password auth
   name: text("name"),
   profileImage: text("profile_image"),
   phoneNumber: text("phone_number").unique(),
   phoneNumberHash: text("phone_number_hash"),
   isVerified: boolean("is_verified").default(true).notNull(),
+  emailVerified: boolean("email_verified").default(false),
+  authProvider: text("auth_provider").default("email"), // 'email', 'google', or 'phone'
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastLoginAt: timestamp("last_login_at"),
 });
@@ -20,6 +23,17 @@ export const otpCodes = pgTable("otp_codes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   phoneNumberHash: text("phone_number_hash").notNull(),
   otpCode: text("otp_code").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  attempts: integer("attempts").default(0).notNull(),
+  isUsed: boolean("is_used").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Email verification codes
+export const emailVerificationCodes = pgTable("email_verification_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull(),
+  verificationCode: text("verification_code").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   attempts: integer("attempts").default(0).notNull(),
   isUsed: boolean("is_used").default(false).notNull(),
@@ -288,3 +302,31 @@ export type SleepData = typeof sleepData.$inferSelect;
 export type InsertSleepData = z.infer<typeof insertSleepDataSchema>;
 export type HeartRateData = typeof heartRateData.$inferSelect;
 export type InsertHeartRateData = z.infer<typeof insertHeartRateDataSchema>;
+
+// Email verification schemas
+export const insertEmailVerificationCodeSchema = createInsertSchema(emailVerificationCodes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const emailRegistrationSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters").max(100),
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+});
+
+export const emailLoginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export const emailVerificationSchema = z.object({
+  email: z.string().email(),
+  verificationCode: z.string().length(6, "Verification code must be 6 digits"),
+});
+
+export type EmailVerificationCode = typeof emailVerificationCodes.$inferSelect;
+export type InsertEmailVerificationCode = z.infer<typeof insertEmailVerificationCodeSchema>;
+export type EmailRegistration = z.infer<typeof emailRegistrationSchema>;
+export type EmailLogin = z.infer<typeof emailLoginSchema>;
+export type EmailVerification = z.infer<typeof emailVerificationSchema>;
