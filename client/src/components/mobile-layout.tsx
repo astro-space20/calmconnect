@@ -33,7 +33,8 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <div className="px-2 py-2 text-sm text-gray-600">
-                {user.phoneNumber}
+                <div className="font-medium">{user.name}</div>
+                <div className="text-xs">{user.email}</div>
               </div>
               <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                 <LogOut className="w-4 h-4 mr-2" />

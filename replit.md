@@ -5,11 +5,11 @@
 CalmTrack is a comprehensive mental wellness application designed specifically to support users with anxiety through evidence-based tracking and management tools. The application provides a holistic approach to mental health by combining activity tracking, nutrition logging, social exposure management, and cognitive behavioral therapy (CBT) techniques. Built as a mobile-first progressive web application, CalmTrack emphasizes gentle progression, self-compassion, and positive reinforcement to help users build resilience and manage anxiety symptoms.
 
 ## Recent Changes (January 2025)
-- **Authentication System**: Complete mobile phone OTP verification with encrypted data storage
-- **Guest Login**: One-click guest access without phone verification for immediate app testing
-- **Real SMS Integration**: Twilio SMS service for actual text message delivery of OTP codes
-- **Protected Routes**: All tracking features secured behind authentication with JWT sessions
-- **User Management**: Logout functionality with user menu, automatic session handling
+- **Google OAuth Authentication**: Replaced phone/SMS authentication with Google Sign-In for improved user experience and security
+- **Modern Login Flow**: Professional Google OAuth integration with automatic user profile creation and JWT token management
+- **Enhanced User Management**: Email-based user profiles with Google profile images and verified accounts by default
+- **Streamlined Access**: Users can now authenticate instantly using their existing Google accounts without SMS verification delays
+- **Protected Routes**: All tracking features secured behind Google OAuth authentication with JWT sessions
 - **AI Assistance Integration**: Comprehensive AI support across multiple features:
   - **Thought Journal AI**: Individual entry analysis and multi-day journey insights
   - **CBT Exercise Guidance**: Personalized pre-exercise coaching and post-exercise feedback
@@ -35,10 +35,11 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework for RESTful API endpoints
+- **Authentication**: Google OAuth 2.0 with Passport.js strategy for secure user authentication
 - **Database ORM**: Drizzle ORM with PostgreSQL dialect for type-safe database operations
 - **Data Validation**: Zod schemas for runtime type validation and API contract enforcement
 - **Storage Pattern**: Repository pattern with in-memory fallback for development and PostgreSQL for production
-- **API Design**: RESTful endpoints following resource-based URL structure with proper HTTP status codes
+- **API Design**: RESTful endpoints following resource-based URL structure with proper HTTP status codes and JWT token protection
 
 ### Data Model Design
 The application uses five core entities reflecting different aspects of mental wellness tracking:
