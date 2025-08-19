@@ -65,11 +65,9 @@ export default function EmailLogin() {
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <Link href="/login">
-            <a className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Login Options
-            </a>
+          <Link href="/login" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Login Options
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
           <p className="text-gray-600">Sign in to your CalmTrack account</p>
@@ -153,20 +151,16 @@ export default function EmailLogin() {
 
             <div className="mt-6 space-y-4">
               <div className="text-center">
-                <Link href="/forgot-password">
-                  <a className="text-sm text-blue-600 hover:text-blue-700">
-                    Forgot your password?
-                  </a>
+                <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700">
+                  Forgot your password?
                 </Link>
               </div>
               
               <div className="text-center">
                 <p className="text-sm text-gray-600">
                   Don't have an account?{" "}
-                  <Link href="/register">
-                    <a className="text-blue-600 hover:text-blue-700 font-medium">
-                      Sign up here
-                    </a>
+                  <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+                    Sign up here
                   </Link>
                 </p>
               </div>

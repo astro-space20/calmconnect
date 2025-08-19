@@ -67,11 +67,9 @@ export default function EmailRegister() {
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <Link href="/login">
-            <a className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Login
-            </a>
+          <Link href="/login" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Login
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
           <p className="text-gray-600">Join CalmTrack to start your wellness journey</p>
@@ -169,10 +167,8 @@ export default function EmailRegister() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
-                <Link href="/login">
-                  <a className="text-blue-600 hover:text-blue-700 font-medium">
-                    Sign in here
-                  </a>
+                <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                  Sign in here
                 </Link>
               </p>
             </div>
