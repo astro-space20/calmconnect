@@ -28,12 +28,10 @@ export default function EmailLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: EmailLogin) => {
-      return await apiRequest('/api/auth/login', {
-        method: 'POST',
-        body: data,
-      });
+      const response = await apiRequest('POST', '/api/auth/login', data);
+      return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data.success && data.token) {
         // Store token in localStorage
         localStorage.setItem('authToken', data.token);

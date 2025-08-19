@@ -7,12 +7,15 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-super-secure-jwt-secret-key-c
 
 // Configure Google OAuth Strategy
 export function configureGoogleAuth() {
+  // Use the exact domain from the environment
+  const baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN || '3c4542c3-83b5-4cd9-8c60-67bcbb5508fe-00-3aqqb8a3bgmtw.riker.replit.dev'}`;
+  
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: "/api/auth/google/callback"
+    callbackURL: `${baseUrl}/api/auth/google/callback`
   },
-  async (accessToken, refreshToken, profile, done) => {
+  async (accessToken: string, refreshToken: string, profile: any, done: any) => {
     try {
       const googleId = profile.id;
       const email = profile.emails?.[0]?.value;

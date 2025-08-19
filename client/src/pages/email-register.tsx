@@ -30,12 +30,10 @@ export default function EmailRegister() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: EmailRegistration) => {
-      return await apiRequest('/api/auth/register', {
-        method: 'POST',
-        body: data,
-      });
+      const response = await apiRequest('POST', '/api/auth/register', data);
+      return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data.success) {
         setRegisteredEmail(form.getValues('email'));
         setShowVerification(true);
@@ -187,12 +185,10 @@ function EmailVerification({ email }: { email: string }) {
 
   const verifyMutation = useMutation({
     mutationFn: async (data: { email: string; verificationCode: string }) => {
-      return await apiRequest('/api/auth/verify-email', {
-        method: 'POST',
-        body: data,
-      });
+      const response = await apiRequest('POST', '/api/auth/verify-email', data);
+      return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data.success) {
         toast({
           title: "Email Verified",
@@ -212,12 +208,10 @@ function EmailVerification({ email }: { email: string }) {
 
   const resendMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/auth/resend-verification', {
-        method: 'POST',
-        body: { email },
-      });
+      const response = await apiRequest('POST', '/api/auth/resend-verification', { email });
+      return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data.success) {
         toast({
           title: "Code Sent",
