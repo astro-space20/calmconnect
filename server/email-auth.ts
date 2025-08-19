@@ -70,7 +70,7 @@ export class EmailAuthService {
 
       return { 
         success: true, 
-        message: 'Account created successfully. Please check your email for verification code.',
+        message: `Account created successfully. Your verification code is: ${verificationCode} (expires in 15 minutes)`,
         userId: user.id 
       };
     } catch (error: any) {
@@ -212,7 +212,7 @@ export class EmailAuthService {
 
       return { 
         success: true, 
-        message: 'Verification code sent successfully. Please check your email.' 
+        message: `New verification code: ${verificationCode} (expires in 15 minutes)` 
       };
     } catch (error: any) {
       console.error('Resend verification error:', error);
