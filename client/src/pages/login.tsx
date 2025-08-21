@@ -27,6 +27,7 @@ export default function Login() {
   }, [setLocation]);
 
   const handleGoogleSignIn = () => {
+    // Direct redirect to Google OAuth
     window.location.href = '/api/auth/google';
   };
 
