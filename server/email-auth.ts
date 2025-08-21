@@ -159,15 +159,7 @@ export class EmailAuthService {
       // Update user as verified
       await storage.updateUserVerification(verification.email, true);
 
-      // Also update emailVerified flag
-      const user = await storage.getUserByEmail(verification.email);
-      if (user) {
-        await storage.createUser({
-          ...user,
-          emailVerified: true,
-          isVerified: true
-        });
-      }
+      // User is already updated by updateUserVerification above
 
       return { 
         success: true, 

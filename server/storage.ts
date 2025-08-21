@@ -55,7 +55,7 @@ export interface IStorage {
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserVerification(id: string, isVerified: boolean): Promise<User | undefined>;
+  updateUserVerification(email: string, isVerified: boolean): Promise<User | undefined>;
   updateUserGoogleId(id: string, googleId: string): Promise<User | undefined>;
   updateUserLastLogin(id: string): Promise<void>;
   
@@ -138,11 +138,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserVerification(id: string, isVerified: boolean): Promise<User | undefined> {
+  async updateUserVerification(email: string, isVerified: boolean): Promise<User | undefined> {
     const [user] = await db
       .update(users)
-      .set({ isVerified, lastLoginAt: new Date() })
-      .where(eq(users.id, id))
+      .set({ isVerified, emailVerified: true, lastLoginAt: new Date() })
+      .where(eq(users.email, email))
       .returning();
     return user || undefined;
   }
