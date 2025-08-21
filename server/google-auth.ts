@@ -7,8 +7,11 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-super-secure-jwt-secret-key-c
 
 // Configure Google OAuth Strategy
 export function configureGoogleAuth() {
-  // Use the exact domain from the environment
-  const baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN || '3c4542c3-83b5-4cd9-8c60-67bcbb5508fe-00-3aqqb8a3bgmtw.riker.replit.dev'}`;
+  // Use the exact domain from the environment - updated for current Replit domain format
+  const replitDomain = process.env.REPLIT_DEV_DOMAIN || 'localhost:5000';
+  const baseUrl = replitDomain.includes('localhost') 
+    ? `http://${replitDomain}` 
+    : `https://${replitDomain}`;
   
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
