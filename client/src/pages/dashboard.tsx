@@ -149,6 +149,26 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-600">CBT reframing</p>
               </a>
             </Link>
+
+            <Link href="/achievements">
+              <a className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mb-3">
+                  <Trophy className="text-white w-6 h-6" />
+                </div>
+                <h3 className="font-medium text-white mb-1">Achievements</h3>
+                <p className="text-xs text-white opacity-90">Track milestones</p>
+              </a>
+            </Link>
+
+            <Link href="/progress">
+              <a className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+                  <TrendingUp className="text-blue-600 w-6 h-6" />
+                </div>
+                <h3 className="font-medium text-gray-800 mb-1">Progress</h3>
+                <p className="text-xs text-gray-600">View analytics</p>
+              </a>
+            </Link>
           </div>
         </section>
 

@@ -23,6 +23,10 @@ import {
   type InsertSleepData,
   type HeartRateData,
   type InsertHeartRateData,
+  type Achievement,
+  type InsertAchievement,
+  type SocialShare,
+  type InsertSocialShare,
   users,
   activities,
   nutritionLogs,
@@ -35,6 +39,8 @@ import {
   wearableDevices,
   sleepData,
   heartRateData,
+  achievements,
+  socialShares,
   emailVerificationCodes,
   type EmailVerificationCode,
   type InsertEmailVerificationCode } from "@shared/schema";
@@ -534,6 +540,67 @@ export class DatabaseStorage implements IStorage {
     }
 
     return await query.orderBy(sql`${heartRateData.recordedAt} DESC`);
+  }
+
+  async getLatestHeartRate(userId: string): Promise<HeartRateData | undefined> {
+    const [result] = await db
+      .select()
+      .from(heartRateData)
+      .where(eq(heartRateData.userId, userId))
+      .orderBy(sql`${heartRateData.recordedAt} DESC`)
+      .limit(1);
+    return result || undefined;
+  }
+
+  async deleteHeartRateData(id: string): Promise<void> {
+    await db.delete(heartRateData).where(eq(heartRateData.id, id));
+  }
+
+  // Achievements
+  async getAchievements(userId: string): Promise<Achievement[]> {
+    return await db.select().from(achievements).where(eq(achievements.userId, userId));
+  }
+
+  async createAchievement(achievement: InsertAchievement): Promise<Achievement> {
+    const [result] = await db.insert(achievements).values(achievement).returning();
+    return result;
+  }
+
+  async updateAchievementProgress(achievementId: string, progress: number, unlocked?: boolean): Promise<Achievement | undefined> {
+    const updateData: any = { currentProgress: progress };
+    if (unlocked) {
+      updateData.isUnlocked = true;
+      updateData.unlockedAt = new Date();
+    }
+
+    const [result] = await db
+      .update(achievements)
+      .set(updateData)
+      .where(eq(achievements.id, achievementId))
+      .returning();
+    return result || undefined;
+  }
+
+  async unlockAchievement(achievementId: string): Promise<Achievement | undefined> {
+    const [result] = await db
+      .update(achievements)
+      .set({
+        isUnlocked: true,
+        unlockedAt: new Date(),
+      })
+      .where(eq(achievements.id, achievementId))
+      .returning();
+    return result || undefined;
+  }
+
+  // Social Shares
+  async getSocialShares(userId: string): Promise<SocialShare[]> {
+    return await db.select().from(socialShares).where(eq(socialShares.userId, userId));
+  }
+
+  async createSocialShare(share: InsertSocialShare): Promise<SocialShare> {
+    const [result] = await db.insert(socialShares).values(share).returning();
+    return result;
   }
 }
 

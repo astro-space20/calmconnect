@@ -25,6 +25,7 @@ export default function ActivityForm({ onSuccess }: ActivityFormProps) {
   const [activityType, setActivityType] = useState<string>("walking");
   const [isStepsActivity, setIsStepsActivity] = useState(false);
   const { toast } = useToast();
+  const { checkAchievements } = useAchievements();
   const queryClient = useQueryClient();
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<InsertActivity>({
@@ -50,6 +51,8 @@ export default function ActivityForm({ onSuccess }: ActivityFormProps) {
         title: "Activity logged!",
         description: "Great job moving your body today!",
       });
+      // Check for new achievements after logging activity
+      checkAchievements();
       onSuccess?.();
     },
     onError: () => {

@@ -17,6 +17,13 @@ CalmTrack is a comprehensive mental wellness application designed specifically t
   - **Social Exposure AI**: Pre-exposure motivation, post-completion celebration, and daily encouragement
 - **Enhanced CBT System**: 4 audio-guided exercises with AI-powered personalized guidance
 - **Smart Analytics**: Pattern recognition and progress tracking with actionable insights
+- **Achievement & Social Sharing System**: Complete gamification and social features:
+  - **Achievement Tracking**: 15 predefined achievements across activity, social, nutrition, mental health, and overall wellness categories
+  - **Progress Milestones**: Streak tracking, goal completion, and milestone celebrations with visual progress indicators
+  - **Social Sharing**: Share achievements on Twitter, Facebook, LinkedIn, Instagram, or copy to clipboard with personalized motivational messages
+  - **Real-time Notifications**: Instant achievement unlock notifications with celebratory messages and progress updates
+  - **Achievement Categories**: Activity (steps, streaks, time), Social (courage, energy), Nutrition (balanced meals, consistency), Mental Health (thought journaling, CBT), Overall (wellness warrior, consistency)
+  - **Dynamic Progress Calculation**: Automatic progress tracking based on user actions with intelligent streak and milestone detection
 
 ## User Preferences
 

@@ -12,6 +12,7 @@ import SocialTracker from "@/pages/social-tracker";
 import ThoughtJournal from "@/pages/thought-journal";
 import CBTExercises from "@/pages/cbt-exercises";
 import Progress from "@/pages/progress";
+import Achievements from "@/pages/achievements";
 import Login from "@/pages/login";
 import EmailLogin from "@/pages/email-login";
 import EmailRegister from "@/pages/email-register";
@@ -62,6 +63,11 @@ function Router() {
       <Route path="/counselling">
         <ProtectedRoute>
           <Counselling />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/achievements">
+        <ProtectedRoute>
+          <Achievements />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />

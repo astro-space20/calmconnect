@@ -6,6 +6,7 @@ import { analyzeCBTEntry, getInsightSummary, getDetailedAnalysis } from "./ai-an
 import { getPersonalizedGuidance, getPostExerciseFeedback } from "./cbt-ai-guidance";
 import { getMoodSupportWithContext } from "./mood-ai-support";
 import { getPreExposureMotivation, getPostExposureSupport, getDailyExposureMotivation } from "./social-exposure-ai";
+import { achievementService } from "./achievements";
 import { 
   insertActivitySchema,
   insertNutritionLogSchema,
@@ -15,7 +16,10 @@ import {
   insertCounsellorSchema,
   insertCounsellingBookingSchema,
   phoneAuthSchema,
-  otpVerifySchema
+  otpVerifySchema,
+  insertSocialShareSchema,
+  type Achievement,
+  type InsertAchievement
 } from "@shared/schema";
 import { verifyJWT } from "./auth";
 import authenticateEmailUser from "./auth-middleware";
@@ -760,6 +764,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         message: 'Failed to fetch user profile' 
       });
+    }
+  });
+
+  // Achievement Routes
+  app.get("/api/achievements", authenticateUser, async (req: any, res) => {
+    try {
+      const achievements = await storage.getAchievements(req.user.id);
+      res.json(achievements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
+  // Initialize achievements for new user
+  app.post("/api/achievements/initialize", authenticateUser, async (req: any, res) => {
+    try {
+      await achievementService.initializeUserAchievements(req.user.id);
+      const achievements = await storage.getAchievements(req.user.id);
+      res.json({ message: "Achievements initialized", achievements });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to initialize achievements" });
+    }
+  });
+
+  // Check and update achievements (called after user actions)
+  app.post("/api/achievements/check", authenticateUser, async (req: any, res) => {
+    try {
+      const unlockedAchievements = await achievementService.checkAndUpdateAchievements(req.user.id);
+      res.json({ 
+        message: unlockedAchievements.length > 0 ? "New achievements unlocked!" : "No new achievements",
+        unlockedAchievements 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check achievements" });
+    }
+  });
+
+  // Social sharing routes
+  app.post("/api/social-shares", authenticateUser, async (req: any, res) => {
+    try {
+      const shareData = insertSocialShareSchema.parse({
+        ...req.body,
+        userId: req.user.id
+      });
+      
+      const socialShare = await storage.createSocialShare(shareData);
+      res.status(201).json(socialShare);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to create social share" });
+    }
+  });
+
+  app.get("/api/social-shares", authenticateUser, async (req: any, res) => {
+    try {
+      const socialShares = await storage.getSocialShares(req.user.id);
+      res.json(socialShares);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch social shares" });
+    }
+  });
+
+  // Generate share content for achievement
+  app.post("/api/achievements/:id/share-text", authenticateUser, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const achievements = await storage.getAchievements(req.user.id);
+      const achievement = achievements.find(a => a.id === id);
+      
+      if (!achievement) {
+        return res.status(404).json({ message: "Achievement not found" });
+      }
+
+      if (!achievement.isUnlocked) {
+        return res.status(400).json({ message: "Cannot share locked achievement" });
+      }
+
+      const user = await storage.getUser(req.user.id);
+      const shareText = achievementService.generateShareText(achievement, user?.name);
+      
+      res.json({ shareText, achievement });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate share text" });
     }
   });
 

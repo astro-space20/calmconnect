@@ -182,6 +182,32 @@ export const counsellingBookings = pgTable("counselling_bookings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Achievements and social sharing
+export const achievements = pgTable("achievements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  type: text("type").notNull(), // activity_streak, social_milestone, nutrition_goal, thought_journal_streak, weekly_complete
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // activity, social, nutrition, mental_health, overall
+  icon: text("icon").notNull(), // emoji or icon name
+  milestone: integer("milestone").notNull(), // the achievement threshold (e.g., 7 for 7-day streak)
+  currentProgress: integer("current_progress").default(0).notNull(),
+  isUnlocked: boolean("is_unlocked").default(false).notNull(),
+  unlockedAt: timestamp("unlocked_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const socialShares = pgTable("social_shares", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  achievementId: varchar("achievement_id").notNull(),
+  platform: text("platform").notNull(), // twitter, facebook, instagram, linkedin, clipboard
+  shareText: text("share_text").notNull(),
+  shareUrl: text("share_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -250,6 +276,17 @@ export const insertCounsellingBookingSchema = createInsertSchema(counsellingBook
   updatedAt: true,
 });
 
+export const insertAchievementSchema = createInsertSchema(achievements).omit({
+  id: true,
+  createdAt: true,
+  unlockedAt: true,
+});
+
+export const insertSocialShareSchema = createInsertSchema(socialShares).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -272,6 +309,12 @@ export type InsertThoughtJournal = z.infer<typeof insertThoughtJournalSchema>;
 
 export type EmpathyCheckin = typeof empathyCheckins.$inferSelect;
 export type InsertEmpathyCheckin = z.infer<typeof insertEmpathyCheckinSchema>;
+
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
+
+export type SocialShare = typeof socialShares.$inferSelect;
+export type InsertSocialShare = z.infer<typeof insertSocialShareSchema>;
 
 export type Counsellor = typeof counsellors.$inferSelect;
 export type InsertCounsellor = z.infer<typeof insertCounsellorSchema>;
