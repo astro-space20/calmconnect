@@ -61,6 +61,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Get current user route (for both Google OAuth and email auth)
+  app.get("/api/auth/user", verifyJWT, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User not found in token" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Return safe user data
+      res.json({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profileImage: user.profileImage,
+        isVerified: user.isVerified,
+        authProvider: user.authProvider
+      });
+    } catch (error) {
+      console.error("Get user error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/auth/send-otp", async (req, res) => {
     try {
       const { phoneNumber } = phoneAuthSchema.parse(req.body);

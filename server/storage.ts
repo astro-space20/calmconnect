@@ -17,6 +17,12 @@ import {
   type InsertCounsellor,
   type CounsellingBooking,
   type InsertCounsellingBooking,
+  type WearableDevice,
+  type InsertWearableDevice,
+  type SleepData,
+  type InsertSleepData,
+  type HeartRateData,
+  type InsertHeartRateData,
   users,
   activities,
   nutritionLogs,
@@ -25,8 +31,11 @@ import {
   empathyCheckins,
   otpCodes,
   counsellors,
-  counsellingBookings
-, emailVerificationCodes,
+  counsellingBookings,
+  wearableDevices,
+  sleepData,
+  heartRateData,
+  emailVerificationCodes,
   type EmailVerificationCode,
   type InsertEmailVerificationCode } from "@shared/schema";
 import { db } from "./db";

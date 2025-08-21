@@ -43,6 +43,8 @@ export function configureGoogleAuth() {
             email,
             name: name || "Google User",
             profileImage,
+            authProvider: 'google',
+            emailVerified: true,
             isVerified: true
           });
         }

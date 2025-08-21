@@ -83,6 +83,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Check for Google OAuth token in URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenParam = urlParams.get('token');
+    
+    if (tokenParam) {
+      // Store the token and redirect to clean URL
+      localStorage.setItem('auth_token', tokenParam);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Let checkAuth handle the rest
+    }
+    
     checkAuth();
   }, []);
 
