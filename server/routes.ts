@@ -50,8 +50,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const user = req.user;
         if (!user) {
+          console.error("Google OAuth callback: No user found");
           return res.redirect("/login?error=auth_failed");
         }
+
+        console.log("Google OAuth callback successful for user:", user.email);
 
         // Generate JWT token
         const token = generateJWTFromUser(user);

@@ -8,10 +8,12 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-super-secure-jwt-secret-key-c
 // Configure Google OAuth Strategy
 export function configureGoogleAuth() {
   // Use the exact domain from the environment - updated for current Replit domain format
-  const replitDomain = process.env.REPLIT_DEV_DOMAIN || 'localhost:5000';
+  const replitDomain = process.env.REPLIT_DEV_DOMAIN || '3c4542c3-83b5-4cd9-8c60-67bcbb5508fe-00-3aqqb8a3bgmtw.riker.replit.dev';
   const baseUrl = replitDomain.includes('localhost') 
     ? `http://${replitDomain}` 
     : `https://${replitDomain}`;
+
+  console.log('Google OAuth callback URL:', `${baseUrl}/api/auth/google/callback`);
   
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
@@ -20,12 +22,15 @@ export function configureGoogleAuth() {
   },
   async (accessToken: string, refreshToken: string, profile: any, done: any) => {
     try {
+      console.log('Google OAuth profile received:', profile.id, profile.emails?.[0]?.value);
+      
       const googleId = profile.id;
       const email = profile.emails?.[0]?.value;
       const name = profile.displayName;
       const profileImage = profile.photos?.[0]?.value;
 
       if (!email) {
+        console.error("No email found in Google profile");
         return done(new Error("No email found in Google profile"), null);
       }
 
