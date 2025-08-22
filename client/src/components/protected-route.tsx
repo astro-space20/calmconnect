@@ -23,7 +23,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!user || !user.isVerified) {
+  if (!user) {
     return <Login />;
   }
 

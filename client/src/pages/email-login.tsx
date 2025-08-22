@@ -12,10 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import { emailLoginSchema, type EmailLogin } from "@shared/schema";
 import { ArrowLeft, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Link } from "wouter";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function EmailLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<EmailLogin>({
@@ -32,17 +34,26 @@ export default function EmailLogin() {
       return await response.json();
     },
     onSuccess: (data: any) => {
-      if (data.success && data.token) {
-        // Store token in localStorage
+      if (data.success && data.token && data.user) {
+        // Store token for email auth compatibility
         localStorage.setItem('authToken', data.token);
+        
+        // Use auth context to handle login
+        login(data.token, {
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.name || data.user.email,
+          profileImage: data.user.profileImage,
+          isVerified: true
+        });
         
         toast({
           title: "Login Successful",
           description: data.message,
         });
         
-        // Redirect to dashboard
-        setLocation("/dashboard");
+        // Redirect to dashboard (root path)
+        setLocation("/");
       }
     },
     onError: (error: any) => {
