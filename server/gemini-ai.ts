@@ -8,6 +8,57 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 export class GeminiAIService {
+  // AI Counsellor Chat
+  async generateCounsellorResponse(
+    userMessage: string,
+    journalEntry: any = null,
+    conversationHistory: Array<{ role: string; content: string }> = []
+  ): Promise<string> {
+    try {
+      let prompt = `You are a warm, empathetic AI wellness counsellor specializing in anxiety support and mental health. You provide:
+- Compassionate, non-judgmental responses
+- Evidence-based cognitive behavioral therapy techniques  
+- Motivational support and encouragement
+- Practical coping strategies
+- Active listening and validation
+
+Guidelines:
+- Keep responses supportive and under 150 words
+- Ask thoughtful follow-up questions
+- Validate emotions while gently challenging negative thought patterns
+- Suggest practical techniques when appropriate
+- Maintain professional boundaries
+
+Current conversation context:`;
+
+      if (conversationHistory.length > 0) {
+        prompt += `\n\nPrevious conversation:\n`;
+        conversationHistory.forEach(msg => {
+          prompt += `${msg.role === 'user' ? 'User' : 'Counsellor'}: ${msg.content}\n`;
+        });
+      }
+
+      if (journalEntry) {
+        prompt += `\n\nUser's journal entry context:
+- Situation: ${journalEntry.situation}
+- Negative thought: ${journalEntry.negativeThought}
+- Emotion: ${journalEntry.emotion} (intensity: ${journalEntry.emotionIntensity}/10)
+- Reframing attempt: ${journalEntry.reframing || 'Not yet attempted'}`;
+      }
+
+      prompt += `\n\nUser's current message: "${userMessage}"
+
+Respond as a supportive counsellor:`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+    } catch (error) {
+      console.error('Gemini counsellor error:', error);
+      return "I understand you're reaching out, and I want you to know that's a brave step. While I'm having technical difficulties right now, please remember that your feelings are valid and you're not alone in this journey.";
+    }
+  }
+
   // Thought Journal AI Analysis
   async analyzeThoughtEntry(
     situation: string,

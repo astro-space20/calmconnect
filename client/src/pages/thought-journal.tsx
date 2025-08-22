@@ -9,7 +9,7 @@ import ThoughtForm from "@/components/thought-form";
 import { Button } from "@/components/ui/button";
 import InsightsDashboard from "@/components/insights-dashboard";
 import AIAssistanceButton from "@/components/ai-assistance-button";
-import DetailedAnalysisButton from "@/components/detailed-analysis-button";
+import AICounsellorChat from "@/components/ai-counsellor-chat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -46,10 +46,8 @@ export default function ThoughtJournal() {
       <header className="gradient-bg text-white p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Link href="/">
-              <a className="mr-4">
-                <ArrowLeft className="w-6 h-6" />
-              </a>
+            <Link href="/" className="mr-4">
+              <ArrowLeft className="w-6 h-6" />
             </Link>
             <h1 className="text-xl font-semibold">Thought Journal</h1>
           </div>
@@ -77,9 +75,9 @@ export default function ThoughtJournal() {
           <InsightsDashboard />
         </div>
 
-        {/* Detailed AI Analysis */}
+        {/* AI Counsellor Chat */}
         <div className="mb-6">
-          <DetailedAnalysisButton />
+          <AICounsellorChat />
         </div>
 
         <div className="mb-6">
@@ -162,7 +160,7 @@ export default function ThoughtJournal() {
                     </p>
                   </div>
 
-                  <AIAssistanceButton journalId={journal.id} />
+                  <AICounsellorChat journalEntry={journal} />
                 </CardContent>
               </Card>
             ))}

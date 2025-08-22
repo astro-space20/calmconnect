@@ -598,6 +598,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Counsellor Chat
+  app.post("/api/ai-counsellor/chat", authenticateUser, async (req: any, res) => {
+    try {
+      const { message, journalEntry, conversationHistory } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      const response = await geminiAI.generateCounsellorResponse(
+        message,
+        journalEntry,
+        conversationHistory || []
+      );
+      
+      res.json({ response });
+    } catch (error) {
+      console.error('AI counsellor chat error:', error);
+      res.status(500).json({ message: "Failed to get counsellor response" });
+    }
+  });
+
   // Counsellors
   app.get("/api/counsellors", async (req, res) => {
     try {
