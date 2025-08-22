@@ -23,12 +23,18 @@ export async function apiRequest(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, {
+  const fetchOptions: RequestInit = {
     method,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
-  });
+  };
+
+  // Only add body for non-GET/HEAD requests
+  if (method !== 'GET' && method !== 'HEAD' && data) {
+    fetchOptions.body = JSON.stringify(data);
+  }
+
+  const res = await fetch(url, fetchOptions);
 
   // If unauthorized, clear token and redirect to login
   if (res.status === 401 && token) {

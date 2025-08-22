@@ -110,64 +110,52 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold mb-4 text-gray-800">Quick Actions</h2>
           
           <div className="grid grid-cols-2 gap-4">
-            <Link href="/activity">
-              <a className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
-                <div className="w-12 h-12 bg-primary bg-opacity-10 rounded-xl flex items-center justify-center mb-3">
-                  <Activity className="text-primary w-6 h-6" />
-                </div>
-                <h3 className="font-medium text-gray-800 mb-1">Log Activity</h3>
-                <p className="text-xs text-gray-600">Track your movement</p>
-              </a>
+            <Link href="/activity" className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
+              <div className="w-12 h-12 bg-primary bg-opacity-10 rounded-xl flex items-center justify-center mb-3">
+                <Activity className="text-primary w-6 h-6" />
+              </div>
+              <h3 className="font-medium text-gray-800 mb-1">Log Activity</h3>
+              <p className="text-xs text-gray-600">Track your movement</p>
             </Link>
             
-            <Link href="/social">
-              <a className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
-                <div className="w-12 h-12 bg-secondary bg-opacity-10 rounded-xl flex items-center justify-center mb-3">
-                  <Users className="text-secondary w-6 h-6" />
-                </div>
-                <h3 className="font-medium text-gray-800 mb-1">Social Check</h3>
-                <p className="text-xs text-gray-600">Before/after energy</p>
-              </a>
+            <Link href="/social" className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
+              <div className="w-12 h-12 bg-secondary bg-opacity-10 rounded-xl flex items-center justify-center mb-3">
+                <Users className="text-secondary w-6 h-6" />
+              </div>
+              <h3 className="font-medium text-gray-800 mb-1">Social Check</h3>
+              <p className="text-xs text-gray-600">Before/after energy</p>
             </Link>
             
-            <Link href="/cbt-exercises">
-              <a className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
-                <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-3">
-                  <Brain className="text-indigo-600 w-6 h-6" />
-                </div>
-                <h3 className="font-medium text-gray-800 mb-1">CBT Exercises</h3>
-                <p className="text-xs text-gray-600">Guided audio therapy</p>
-              </a>
+            <Link href="/cbt-exercises" className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
+              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-3">
+                <Brain className="text-indigo-600 w-6 h-6" />
+              </div>
+              <h3 className="font-medium text-gray-800 mb-1">CBT Exercises</h3>
+              <p className="text-xs text-gray-600">Guided audio therapy</p>
             </Link>
             
-            <Link href="/journal">
-              <a className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
-                <div className="w-12 h-12 bg-accent bg-opacity-10 rounded-xl flex items-center justify-center mb-3">
-                  <Brain className="text-accent w-6 h-6" />
-                </div>
-                <h3 className="font-medium text-gray-800 mb-1">Thought Journal</h3>
-                <p className="text-xs text-gray-600">CBT reframing</p>
-              </a>
+            <Link href="/journal" className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
+              <div className="w-12 h-12 bg-accent bg-opacity-10 rounded-xl flex items-center justify-center mb-3">
+                <Brain className="text-accent w-6 h-6" />
+              </div>
+              <h3 className="font-medium text-gray-800 mb-1">Thought Journal</h3>
+              <p className="text-xs text-gray-600">CBT reframing</p>
             </Link>
 
-            <Link href="/achievements">
-              <a className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
-                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mb-3">
-                  <Trophy className="text-white w-6 h-6" />
-                </div>
-                <h3 className="font-medium text-white mb-1">Achievements</h3>
-                <p className="text-xs text-white opacity-90">Track milestones</p>
-              </a>
+            <Link href="/achievements" className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mb-3">
+                <Trophy className="text-white w-6 h-6" />
+              </div>
+              <h3 className="font-medium text-white mb-1">Achievements</h3>
+              <p className="text-xs text-white opacity-90">Track milestones</p>
             </Link>
 
-            <Link href="/progress">
-              <a className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
-                  <TrendingUp className="text-blue-600 w-6 h-6" />
-                </div>
-                <h3 className="font-medium text-gray-800 mb-1">Progress</h3>
-                <p className="text-xs text-gray-600">View analytics</p>
-              </a>
+            <Link href="/progress" className="bg-white rounded-2xl p-4 card-shadow text-left hover:scale-105 transition-transform block">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+                <TrendingUp className="text-blue-600 w-6 h-6" />
+              </div>
+              <h3 className="font-medium text-gray-800 mb-1">Progress</h3>
+              <p className="text-xs text-gray-600">View analytics</p>
             </Link>
           </div>
         </section>
@@ -176,9 +164,7 @@ export default function Dashboard() {
         <section className="bg-white rounded-2xl p-5 mb-6 card-shadow">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-800">This Week</h2>
-            <Link href="/progress">
-              <a className="text-primary text-sm font-medium">View All</a>
-            </Link>
+            <Link href="/progress" className="text-primary text-sm font-medium">View All</Link>
           </div>
           
           <div className="mb-4">
@@ -246,10 +232,8 @@ export default function Dashboard() {
       </main>
 
       {/* Floating Action Button */}
-      <Link href="/activity">
-        <a className="fixed bottom-20 right-6 w-14 h-14 gradient-bg rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform animate-gentle-pulse">
-          <Plus className="w-6 h-6" />
-        </a>
+      <Link href="/activity" className="fixed bottom-20 right-6 w-14 h-14 gradient-bg rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform animate-gentle-pulse">
+        <Plus className="w-6 h-6" />
       </Link>
 
       <BottomNavigation />
