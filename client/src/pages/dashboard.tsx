@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Activity, Apple, Users, Brain, Plus, Heart, Trophy, CheckCircle } from "lucide-react";
+import { Activity, Apple, Users, Brain, Plus, Heart, Trophy, CheckCircle, TrendingUp } from "lucide-react";
 import type { Activity as ActivityType, NutritionLog, SocialExposure } from "@shared/schema";
 import MobileLayout from "@/components/mobile-layout";
 import BottomNavigation from "@/components/bottom-navigation";
