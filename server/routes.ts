@@ -6,6 +6,7 @@ import { analyzeCBTEntry, getInsightSummary, getDetailedAnalysis } from "./ai-an
 import { getPersonalizedGuidance, getPostExerciseFeedback } from "./cbt-ai-guidance";
 import { getMoodSupportWithContext } from "./mood-ai-support";
 import { getPreExposureMotivation, getPostExposureSupport, getDailyExposureMotivation } from "./social-exposure-ai";
+import { geminiAI } from './gemini-ai';
 import { achievementService } from "./achievements";
 import { 
   insertActivitySchema,
@@ -407,7 +408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/thought-journals/insights", authenticateUser, async (req: any, res) => {
     try {
       const journals = await storage.getThoughtJournals(req.user.id);
-      const insights = getInsightSummary(journals);
+      const insights = await getInsightSummary(journals);
       res.json({ insights });
     } catch (error) {
       res.status(500).json({ message: "Failed to get insights" });
@@ -440,10 +441,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         recentThoughtJournals: recentJournals.slice(-10) // Last 10 entries
       };
       
+      // Use Gemini AI for CBT guidance
+      const geminiGuidance = await geminiAI.generateCBTGuidance(exerciseType, 'pre', `Mood: ${currentMood}, Anxiety: ${anxietyLevel}`);
+      
+      res.json({ guidance: {
+        preExerciseGuidance: geminiGuidance.preExerciseGuidance,
+        duringExerciseGuidance: ["Follow the guided instructions", "Be patient and kind with yourself"],
+        postExerciseGuidance: ["Take a moment to notice any changes", "Appreciate the time you've dedicated to self-care"]
+      }});
+    } catch (error) {
+      console.error('CBT guidance error:', error);
+      // Fallback to original guidance
       const guidance = getPersonalizedGuidance(exerciseType, userState);
       res.json({ guidance });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get exercise guidance" });
     }
   });
 
@@ -467,22 +477,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mood Check-in AI Support
   app.post("/api/mood-support", authenticateUser, async (req: any, res) => {
     try {
-      const { moodEmoji } = req.body;
+      const { moodEmoji, userName } = req.body;
       
       if (!moodEmoji) {
         return res.status(400).json({ message: "Mood emoji is required" });
       }
       
-      // Get user's recent mood history (could be extended to store mood logs)
-      const recentMoods: Array<{ mood: string; timestamp: Date }> = [];
-      
-      // Get user name for personalization
-      const user = await storage.getUser(req.user.id);
-      const userName = user?.name || "Guest";
-      
-      const support = getMoodSupportWithContext(moodEmoji, recentMoods, userName);
+      // Use Gemini AI for mood support
+      const support = await geminiAI.generateMoodSupport(moodEmoji, 5, userName);
       res.json({ support });
     } catch (error) {
+      console.error('Mood support error:', error);
       res.status(500).json({ message: "Failed to get mood support" });
     }
   });
@@ -513,9 +518,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         successRate
       };
       
-      const motivation = getPreExposureMotivation(context);
+      // Use Gemini AI for social exposure motivation
+      const motivation = await geminiAI.generateSocialSupport(
+        exposureType, 
+        'pre', 
+        anxietyLevel
+      );
       res.json({ motivation });
     } catch (error) {
+      console.error('Social exposure motivation error:', error);
       res.status(500).json({ message: "Failed to get exposure motivation" });
     }
   });
@@ -554,12 +565,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         successRate
       };
       
-      const feedback = getPostExposureSupport(
-        context,
-        completed || false,
-        beforeAnxiety || 5,
-        afterAnxiety || 5,
-        notes
+      // Use Gemini AI for post-exposure feedback
+      const feedback = await geminiAI.generateSocialSupport(
+        exposureType,
+        'post', 
+        afterAnxiety || anxietyLevel,
+        completed
       );
       
       res.json({ feedback });
@@ -579,7 +590,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: exp.createdAt
       }));
       
-      const motivation = getDailyExposureMotivation(recentExposures, user?.name);
+      // Use Gemini AI for daily encouragement
+      const motivation = await geminiAI.generateDailyEncouragement({ recentExposures });
       res.json({ motivation });
     } catch (error) {
       res.status(500).json({ message: "Failed to get daily motivation" });

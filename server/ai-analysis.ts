@@ -1,5 +1,5 @@
-// Free AI analysis for CBT thought journal entries
-// Uses pattern matching and rule-based analysis instead of external APIs
+// Google Gemini AI analysis for CBT thought journal entries
+import { geminiAI } from './gemini-ai';
 import type { ThoughtJournal } from "@shared/schema";
 
 interface CognitiveDistortion {
@@ -356,46 +356,52 @@ function getCommonEmotions(journals: ThoughtJournal[]): string[] {
     .map(([emotion]) => emotion);
 }
 
-export function getInsightSummary(entries: any[]): string {
-  if (entries.length === 0) {
-    return "Start journaling to see insights about your thought patterns.";
+export async function getInsightSummary(entries: any[]): Promise<string> {
+  try {
+    return await geminiAI.generateJourneyInsights(entries);
+  } catch (error) {
+    console.error('Error generating AI insights:', error);
+    
+    if (entries.length === 0) {
+      return "Start journaling to see insights about your thought patterns.";
+    }
+    
+    const recentEntries = entries.slice(0, 10); // Last 10 entries
+    const allDistortions: string[] = [];
+    let totalIntensity = 0;
+    
+    recentEntries.forEach(entry => {
+      const analysis = analyzeCBTEntry(
+        entry.situation || "",
+        entry.negativeThought || "",
+        entry.emotion || "",
+        entry.emotionIntensity || 5
+      );
+      allDistortions.push(...analysis.cognitiveDistortions);
+      totalIntensity += entry.emotionIntensity || 5;
+    });
+    
+    const avgIntensity = totalIntensity / recentEntries.length;
+    const mostCommonDistortion = getMostFrequent(allDistortions);
+    
+    let summary = `Over your last ${recentEntries.length} entries, `;
+    
+    if (avgIntensity <= 4) {
+      summary += "you've been managing your emotions well with an average intensity of " + avgIntensity.toFixed(1) + ". ";
+    } else if (avgIntensity <= 7) {
+      summary += "your emotional intensity has been moderate (avg: " + avgIntensity.toFixed(1) + "). ";
+    } else {
+      summary += "you've experienced higher emotional intensity (avg: " + avgIntensity.toFixed(1) + "). ";
+    }
+    
+    if (mostCommonDistortion) {
+      summary += `The most common thought pattern to watch for is ${mostCommonDistortion}. `;
+    }
+    
+    summary += "Keep practicing self-awareness and self-compassion.";
+    
+    return summary;
   }
-  
-  const recentEntries = entries.slice(0, 10); // Last 10 entries
-  const allDistortions: string[] = [];
-  let totalIntensity = 0;
-  
-  recentEntries.forEach(entry => {
-    const analysis = analyzeCBTEntry(
-      entry.situation || "",
-      entry.negativeThought || "",
-      entry.emotion || "",
-      entry.emotionIntensity || 5
-    );
-    allDistortions.push(...analysis.cognitiveDistortions);
-    totalIntensity += entry.emotionIntensity || 5;
-  });
-  
-  const avgIntensity = totalIntensity / recentEntries.length;
-  const mostCommonDistortion = getMostFrequent(allDistortions);
-  
-  let summary = `Over your last ${recentEntries.length} entries, `;
-  
-  if (avgIntensity <= 4) {
-    summary += "you've been managing your emotions well with an average intensity of " + avgIntensity.toFixed(1) + ". ";
-  } else if (avgIntensity <= 7) {
-    summary += "your emotional intensity has been moderate (avg: " + avgIntensity.toFixed(1) + "). ";
-  } else {
-    summary += "you've experienced higher emotional intensity (avg: " + avgIntensity.toFixed(1) + "). ";
-  }
-  
-  if (mostCommonDistortion) {
-    summary += `The most common thought pattern to watch for is ${mostCommonDistortion}. `;
-  }
-  
-  summary += "Keep practicing self-awareness and self-compassion.";
-  
-  return summary;
 }
 
 function getMostFrequent(arr: string[]): string | null {
