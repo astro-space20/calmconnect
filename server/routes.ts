@@ -33,6 +33,63 @@ import {
 import { configureGoogleAuth, generateJWTFromUser } from "./google-auth";
 import passport from "passport";
 
+// Helper function to format journals as conversation
+function formatJournalsAsConversation(journals: any[], weeks: number): string {
+  if (journals.length === 0) {
+    return `No thought journal entries found for the past ${weeks} week${weeks > 1 ? 's' : ''}.`;
+  }
+
+  const header = `# Thought Journal Conversation - Past ${weeks} Week${weeks > 1 ? 's' : ''}\n`;
+  const subtitle = `Generated on: ${new Date().toLocaleString()}\n`;
+  const entryCount = `Total entries: ${journals.length}\n\n`;
+  const divider = '='.repeat(50) + '\n\n';
+
+  let conversation = header + subtitle + entryCount + divider;
+
+  // Sort journals by date (oldest first) to show progression
+  const sortedJournals = [...journals].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+  sortedJournals.forEach((journal, index) => {
+    const entryDate = new Date(journal.createdAt).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    conversation += `## Entry ${index + 1} - ${entryDate}\n\n`;
+    conversation += `**Situation:** ${journal.situation}\n\n`;
+    conversation += `**Negative Thought:** ${journal.negativeThought}\n\n`;
+    conversation += `**Emotion:** ${journal.emotion} (Intensity: ${journal.emotionIntensity}/10)\n\n`;
+    
+    if (journal.evidenceFor) {
+      conversation += `**Evidence Supporting the Thought:** ${journal.evidenceFor}\n\n`;
+    }
+    
+    if (journal.evidenceAgainst) {
+      conversation += `**Evidence Against the Thought:** ${journal.evidenceAgainst}\n\n`;
+    }
+    
+    if (journal.reframedThought) {
+      conversation += `**Reframed Thought:** ${journal.reframedThought}\n\n`;
+    }
+    
+    conversation += '-'.repeat(30) + '\n\n';
+  });
+
+  // Add summary section
+  conversation += `## Summary\n\n`;
+  conversation += `This document contains your thought journal entries from the past ${weeks} week${weeks > 1 ? 's' : ''}. `;
+  conversation += `Each entry represents a moment of self-reflection using Cognitive Behavioral Therapy (CBT) techniques. `;
+  conversation += `You can see your journey of challenging negative thoughts and working toward more balanced thinking patterns.\n\n`;
+  conversation += `Remember: This is your personal growth journey. Each entry shows your commitment to understanding and improving your mental well-being.\n\n`;
+  conversation += `Keep up the excellent work! 🌱`;
+
+  return conversation;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
@@ -423,6 +480,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ analysis });
     } catch (error) {
       res.status(500).json({ message: "Failed to get detailed analysis" });
+    }
+  });
+
+  // Download thought journal conversations for different time periods
+  app.get("/api/thought-journals/download/:weeks", authenticateUser, async (req: any, res) => {
+    try {
+      const { weeks } = req.params;
+      const weeksNumber = parseInt(weeks);
+      
+      if (![1, 2, 3].includes(weeksNumber)) {
+        return res.status(400).json({ message: "Invalid time period. Use 1, 2, or 3 weeks" });
+      }
+      
+      const daysBack = weeksNumber * 7;
+      const journals = await storage.getThoughtJournalsByDateRange(req.user.id, daysBack);
+      
+      const conversationText = formatJournalsAsConversation(journals, weeksNumber);
+      
+      // Set headers for file download
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', `attachment; filename="thought-journal-${weeksNumber}-weeks.txt"`);
+      res.send(conversationText);
+      
+    } catch (error) {
+      console.error('Error downloading thought journals:', error);
+      res.status(500).json({ message: "Failed to download thought journals" });
     }
   });
 

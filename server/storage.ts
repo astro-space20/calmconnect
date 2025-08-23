@@ -45,7 +45,7 @@ import {
   type EmailVerificationCode,
   type InsertEmailVerificationCode } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, lt, sql } from "drizzle-orm";
+import { eq, and, gte, lt, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -87,6 +87,7 @@ export interface IStorage {
   
   // Thought Journals
   getThoughtJournals(userId: string, limit?: number): Promise<ThoughtJournal[]>;
+  getThoughtJournalsByDateRange(userId: string, daysBack: number): Promise<ThoughtJournal[]>;
   getThoughtJournal(id: string): Promise<ThoughtJournal | undefined>;
   createThoughtJournal(journal: InsertThoughtJournal): Promise<ThoughtJournal>;
   
@@ -338,6 +339,22 @@ export class DatabaseStorage implements IStorage {
       .where(eq(thoughtJournals.userId, userId))
       .orderBy(thoughtJournals.createdAt)
       .limit(limit);
+  }
+
+  async getThoughtJournalsByDateRange(userId: string, daysBack: number): Promise<ThoughtJournal[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysBack);
+    
+    return await db
+      .select()
+      .from(thoughtJournals)
+      .where(
+        and(
+          eq(thoughtJournals.userId, userId),
+          gte(thoughtJournals.createdAt, startDate)
+        )
+      )
+      .orderBy(thoughtJournals.createdAt);
   }
 
   async getThoughtJournal(id: string): Promise<ThoughtJournal | undefined> {

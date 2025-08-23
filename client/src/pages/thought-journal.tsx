@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import InsightsDashboard from "@/components/insights-dashboard";
 import AIAssistanceButton from "@/components/ai-assistance-button";
 import AICounsellorChat from "@/components/ai-counsellor-chat";
+import JournalDownloadButtons from "@/components/journal-download-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +79,11 @@ export default function ThoughtJournal() {
         {/* AI Counsellor Chat */}
         <div className="mb-6">
           <AICounsellorChat />
+        </div>
+
+        {/* Journal Download Buttons */}
+        <div className="mb-6">
+          <JournalDownloadButtons />
         </div>
 
         <div className="mb-6">
