@@ -93,38 +93,49 @@ function formatJournalsAsConversation(journals: any[], weeks: number): string {
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
-  // Configure Google OAuth
-  configureGoogleAuth();
-  app.use(passport.initialize());
+  // Configure Google OAuth only if credentials are available
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    try {
+      configureGoogleAuth();
+      app.use(passport.initialize());
 
-  // Google OAuth Routes
-  app.get("/api/auth/google", 
-    passport.authenticate("google", { scope: ["profile", "email"] })
-  );
-
-  app.get("/api/auth/google/callback",
-    passport.authenticate("google", { session: false }),
-    async (req: any, res) => {
-      try {
-        const user = req.user;
-        if (!user) {
-          console.error("Google OAuth callback: No user found");
-          return res.redirect("/login?error=auth_failed");
-        }
-
-        console.log("Google OAuth callback successful for user:", user.email);
-
-        // Generate JWT token
-        const token = generateJWTFromUser(user);
-
-        // Redirect to frontend with token
-        res.redirect(`/?token=${token}`);
-      } catch (error) {
-        console.error("Google auth callback error:", error);
-        res.redirect("/login?error=auth_failed");
-      }
+      // Google OAuth Routes
+      app.get("/api/auth/google", 
+        passport.authenticate("google", { scope: ["profile", "email"] })
+      );
+    } catch (error) {
+      console.warn("Google OAuth configuration failed:", error);
     }
-  );
+  } else {
+    console.log("Google OAuth credentials not configured - skipping Google OAuth setup");
+  }
+
+  // Google OAuth callback route (only if OAuth is configured)
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    app.get("/api/auth/google/callback",
+      passport.authenticate("google", { session: false }),
+      async (req: any, res) => {
+        try {
+          const user = req.user;
+          if (!user) {
+            console.error("Google OAuth callback: No user found");
+            return res.redirect("/login?error=auth_failed");
+          }
+
+          console.log("Google OAuth callback successful for user:", user.email);
+
+          // Generate JWT token
+          const token = generateJWTFromUser(user);
+
+          // Redirect to frontend with token
+          res.redirect(`/?token=${token}`);
+        } catch (error) {
+          console.error("Google auth callback error:", error);
+          res.redirect("/login?error=auth_failed");
+        }
+      }
+    );
+  }
 
   // Get current user route (for both Google OAuth and email auth)
   app.get("/api/auth/user", verifyJWT, async (req: any, res) => {

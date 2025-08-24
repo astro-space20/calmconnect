@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { storage } from './storage';
 import { generateEmailJWT } from './auth';
+import { emailService } from './email-service';
 import { 
   emailRegistrationSchema,
   emailLoginSchema,
@@ -215,29 +216,9 @@ export class EmailAuthService {
     }
   }
 
-  // Mock email sending (replace with real email service)
+  // Send verification email using email service
   private async sendVerificationEmail(email: string, code: string): Promise<void> {
-    console.log(`
-    ========================================
-    EMAIL VERIFICATION CODE
-    ========================================
-    To: ${email}
-    Subject: Verify your CalmTrack account
-    
-    Your verification code is: ${code}
-    
-    This code will expire in 15 minutes.
-    
-    If you didn't create an account with CalmTrack, please ignore this email.
-    ========================================
-    `);
-    
-    // In production, integrate with an email service like:
-    // - SendGrid
-    // - AWS SES
-    // - Twilio SendGrid
-    // - Mailgun
-    // etc.
+    await emailService.sendVerificationEmail(email, code);
   }
 
   // Cleanup expired verification codes (should be run periodically)
